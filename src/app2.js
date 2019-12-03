@@ -63612,10 +63612,7 @@ new Vue({
       }, null, this);
     },
     deliver: function deliver() {
-      window.postMessage({
-        type: "FROM_PAGE",
-        text: "来自网页的问候！"
-      }, "*");
+      console.log('deliver');
     }
   },
   created: function created() {

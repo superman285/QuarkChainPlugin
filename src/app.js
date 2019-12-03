@@ -44,7 +44,7 @@ new Vue({
       //await this.importAccountWithStrategy('Private Key',this.privatekey);
     },
     deliver() {
-      window.postMessage({ type: "FROM_PAGE", text: "来自网页的问候！" }, "*");
+      console.log('deliver');
     }
   },
   created() {
