@@ -2,4 +2,6 @@ html { width: 360px; height: 540px; }
 
 body { padding: 0; margin: 0; width: 360px; height: 540px; background: #c2ec50; }
 
+#app .clear { position: absolute; bottom: 50px; left: 50%; transform: translate(-50%); }
+
 /*# sourceMappingURL=app.css.map */

@@ -29,6 +29,8 @@ QuarkChain.injectWeb3(web3, "http://jrpc.devnet.quarkchain.io:38391");
 
 //web3.setProvider(pkProvider);
 
+PrivateKeyProvider.prototype.isQuarkChain = true;
+
 PrivateKeyProvider.prototype.send = function(payload) {
   var self = this;
   var result = null;
@@ -66,7 +68,7 @@ web3.currentProvider.enable = enable;
 window.ethereum = web3.currentProvider;*/
 
 window.addEventListener("message", function(e) {
-  console.log('听到了',e,chrome);
+  console.log('hear message',e,chrome);
   console.log(e.data);
 
   let {privatekey} = e.data;

@@ -28,12 +28,15 @@ s3.onload = ()=>{
   console.log('inject chrome',chrome);
   s3.parentNode.removeChild(s3);
 
+  //加载完injected脚本后再发消息 再改变currentProvider
+
   (async ()=>{
     let item = await this.getItem('accounts');
-    console.log('contentscript 拿accounts',item);
-    if (item && item.length) {
+    let privatekey = await this.getItem('privatekey')
+    console.log('contentscript get accounts',item);
+    if (item && item.length && privatekey) {
       console.log('item',item);
-      window.postMessage({"test": '你好！',"privatekey": '5a546d5a6b605c731065e4ed32ae8f6a94efbc926463f72ee7691f2441335997'}, '*');
+      window.postMessage({"test": 'hello！',"privatekey": privatekey}, '*');
     }
   })()
 
@@ -63,7 +66,7 @@ function getItem(itemField) {
   //const privateKey = "93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F";
   //let pkProvider = new PrivateKeyProvider(privatekey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
 
-  window.postMessage({"test": '你好！',"privatekey": privatekey}, '*');
+  window.postMessage({"test": 'hello！',"privatekey": privatekey}, '*');
 
 
 });*/

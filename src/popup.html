@@ -22,7 +22,12 @@
         <button @click="enter">enter</button>
         <button @click="deliver">deliver</button>
 
-        <h3 class="address" v-if="accounts.length"> {{ accounts[0] }}</h3>
+
+
+        <h3 class="address" v-if="accounts && accounts.length"> {{ accounts[0] }}</h3>
+
+        <button class="clear" @click="clear">CLEAR</button>
+
     </div>
 
     <script src="./app2.js"></script>

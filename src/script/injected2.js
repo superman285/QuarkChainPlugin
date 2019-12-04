@@ -40634,6 +40634,8 @@ QuarkChain.injectWeb3(web3, "http://jrpc.devnet.quarkchain.io:38391");
 //let localProvider = new Web3.providers.HttpProvider("https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
 //web3.setProvider(pkProvider);
 
+PrivateKeyProvider.prototype.isQuarkChain = true;
+
 PrivateKeyProvider.prototype.send = function (payload) {
   var self = this;
   var result = null;
@@ -40674,7 +40676,7 @@ window.ethereum = web3.currentProvider;*/
 
 
 window.addEventListener("message", function (e) {
-  console.log('听到了', e, chrome);
+  console.log('hear message', e, chrome);
   console.log(e.data);
   var privatekey = e.data.privatekey;
 

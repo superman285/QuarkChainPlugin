@@ -63521,17 +63521,19 @@ function extend() {
 },{}],633:[function(require,module,exports){
 "use strict";
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-require('babel-polyfill');
+require("babel-polyfill");
 
 var accountImporter = require("./script/utils/accountImporter");
 
-var keyringController = require("./script/utils/keyringController"); //必须设置密码 否则
+var keyringController = require("./script/utils/keyringController"); //临时设置一个固定密码
 
 
-keyringController.password = '123456';
-console.log('acc', accountImporter, keyringController);
+keyringController.password = "123456";
+console.log("acc", accountImporter, keyringController);
 new Vue({
   el: "#app",
   data: {
@@ -63557,20 +63559,20 @@ new Vue({
 
             case 5:
               keyring = _context.sent;
-              console.log('keyringController', keyringController, keyringController.keyringTypes['SimpleKeyring'].type);
+              console.log("keyringController", keyringController, keyringController.keyringTypes["SimpleKeyring"].type);
               _context.next = 9;
               return regeneratorRuntime.awrap(keyring.getAccounts());
 
             case 9:
               accounts = _context.sent;
-              console.log('accounts', accounts); // update accounts in preferences controller
+              console.log("accounts", accounts); // update accounts in preferences controller
 
               _context.next = 13;
               return regeneratorRuntime.awrap(keyringController.getAccounts());
 
             case 13:
               allAccounts = _context.sent;
-              console.log('allAccounts', allAccounts);
+              console.log("allAccounts", allAccounts);
 
             case 15:
             case "end":
@@ -63580,7 +63582,7 @@ new Vue({
       });
     },
     enter: function enter() {
-      var privateKey, keyring, accounts;
+      var privateKey, keyring, accounts, setItems, getItem, getKey;
       return regeneratorRuntime.async(function enter$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -63592,48 +63594,57 @@ new Vue({
                 break;
               }
 
-              console.log('请输入密钥'); //todo:要检查格式
+              console.log("please input the key"); //todo: need to check the format of key
 
               return _context2.abrupt("return");
 
             case 4:
               _context2.next = 6;
-              return regeneratorRuntime.awrap(accountImporter.importAccount('Private Key', this.privatekey));
+              return regeneratorRuntime.awrap(accountImporter.importAccount("Private Key", this.privatekey));
 
             case 6:
               privateKey = _context2.sent;
-              console.log('privateKey', privateKey);
+              console.log("privateKey", privateKey);
               _context2.next = 10;
               return regeneratorRuntime.awrap(keyringController.addNewKeyring("Simple Key Pair", [privateKey]));
 
             case 10:
               keyring = _context2.sent;
-              console.log('keyringController', keyringController);
+              console.log("keyringController", keyringController);
               _context2.next = 14;
               return regeneratorRuntime.awrap(keyringController.getAccounts());
 
             case 14:
               accounts = _context2.sent;
-              console.log('accounts', accounts);
+              console.log("accounts", accounts);
               this.accounts = accounts;
-              /*let item = await this.saveItem('accounts',accounts,()=>{
-                console.log('saveItem');
-              });
-              console.log('chrome storage save',item);*/
+              /*let item = await this.setItem("accounts", accounts, () => {
+                  console.log("saveItem finish");
+              });*/
 
-              chrome.storage.local.set({
-                accounts: accounts
-              }, function () {
-                console.log('Value is set to ', accounts);
-              });
-              chrome.storage.local.get(['accounts'], function (result) {
-                console.log('Value currently is ', result);
-              });
-              /*let getItem = await this.getItem(['accounts']);
-              console.log('chrome storage get2',getItem);*/
-              //await this.importAccountWithStrategy('Private Key',this.privatekey);
+              _context2.next = 19;
+              return regeneratorRuntime.awrap(Promise.all([this.setItem("accounts", accounts, function () {
+                console.log("saveItem accounts finish");
+              }), this.setItem("privatekey", this.privatekey, function () {
+                console.log("saveItem privatekey finish");
+              })]));
 
             case 19:
+              setItems = _context2.sent;
+              console.log("chrome storage save", setItems);
+              _context2.next = 23;
+              return regeneratorRuntime.awrap(this.getItem("accounts"));
+
+            case 23:
+              getItem = _context2.sent;
+              _context2.next = 26;
+              return regeneratorRuntime.awrap(this.getItem("privatekey"));
+
+            case 26:
+              getKey = _context2.sent;
+              console.log('chrome storage get', getItem, getKey); //await this.importAccountWithStrategy('Private Key',this.privatekey);
+
+            case 28:
             case "end":
               return _context2.stop();
           }
@@ -63646,19 +63657,19 @@ new Vue({
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
-              console.log('deliver', chrome);
+              console.log("deliver", chrome);
               _context3.next = 3;
               return regeneratorRuntime.awrap(this.getCurrentTab());
 
             case 3:
               currentTab = _context3.sent;
               tabId = currentTab ? currentTab.id : null;
-              console.log('tabs', currentTab, tabId);
+              console.log("tabs", currentTab, tabId);
               chrome.tabs.sendMessage(tabId, {
                 privatekey: this.privatekey,
                 accounts: this.accounts
               }, function (response) {
-                console.log('收到回复', response);
+                console.log("receive the message", response);
               });
 
             case 7:
@@ -63667,6 +63678,12 @@ new Vue({
           }
         }
       }, null, this);
+    },
+    clear: function clear() {
+      this.accounts = [];
+      chrome.storage.local.clear(function (e) {
+        console.log('clear,', e);
+      });
     },
     getCurrentTab: function getCurrentTab() {
       return new Promise(function (resolve) {
@@ -63678,11 +63695,9 @@ new Vue({
         });
       });
     },
-    saveItem: function saveItem(itemField, data, callback) {
+    setItem: function setItem(itemField, data, callback) {
       return new Promise(function (resolve) {
-        chrome.storage.local.set({
-          itemField: data
-        }, callback);
+        chrome.storage.local.set(_defineProperty({}, itemField, data), callback);
         resolve({
           itemField: data
         });
@@ -63707,12 +63722,16 @@ new Vue({
           case 0:
             console.log("mounted");
             _context4.next = 3;
-            return regeneratorRuntime.awrap(this.getItem('accounts'));
+            return regeneratorRuntime.awrap(this.getItem("accounts"));
 
           case 3:
             item = _context4.sent;
-            console.log('mounted item', item);
-            this.accounts = item;
+            console.log("mounted item", item);
+
+            if (item && item.length) {
+              this.accounts = item;
+              console.log("is able to inject");
+            }
 
           case 6:
           case "end":
