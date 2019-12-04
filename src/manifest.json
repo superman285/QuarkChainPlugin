@@ -19,7 +19,8 @@
   "content_scripts": [{
     "js": ["script/inject.js"],
     "matches": ["http://*/*", "https://*/*"],
-    "run_at": "document_start"
+    "run_at": "document_start",
+    "all_frame": true
   }],
   "web_accessible_resources" : ["script/inpage.js","script/inpage2.js"],
   "permissions": ["cookies", "tabs", "notifications", "background", "contextMenus", "*://*/*"],

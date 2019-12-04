@@ -10,7 +10,8 @@ new Vue({
   el: "#app",
   data: {
     message: "Hello, QuarkChain!",
-    privatekey: ""
+    privatekey: "",
+    accounts: []
   },
   methods: {
 
@@ -39,12 +40,23 @@ new Vue({
       const accounts = await keyringController.getAccounts();
       console.log('accounts',accounts);
 
-
+      this.accounts = accounts;
 
       //await this.importAccountWithStrategy('Private Key',this.privatekey);
     },
-    deliver() {
+    async deliver() {
       console.log('deliver');
+      let currentTab = await this.getCurrentTab();
+      let tabId = currentTab ? currentTab.id : null;
+      console.log('tabs',currentTab,tabId);
+      chrome.tabs.sendMessage(tabId, {privatekey:this.privatekey,accounts: this.accounts}, response=>{
+          console.log('收到回复',response);
+      })
+    },
+    getCurrentTab() {
+      return new Promise(resolve=>{
+        chrome.tabs.query({active:true,currentWindow:true},tabs => resolve(tabs[0]));
+      })
     }
   },
   created() {
@@ -54,3 +66,5 @@ new Vue({
     console.log("mounted");
   }
 });
+
+

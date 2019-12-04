@@ -63536,7 +63536,8 @@ new Vue({
   el: "#app",
   data: {
     message: "Hello, QuarkChain!",
-    privatekey: ""
+    privatekey: "",
+    accounts: []
   },
   methods: {
     //strategy:Private Key | JSON File
@@ -63602,9 +63603,10 @@ new Vue({
 
             case 11:
               accounts = _context2.sent;
-              console.log('accounts', accounts); //await this.importAccountWithStrategy('Private Key',this.privatekey);
+              console.log('accounts', accounts);
+              this.accounts = accounts; //await this.importAccountWithStrategy('Private Key',this.privatekey);
 
-            case 13:
+            case 14:
             case "end":
               return _context2.stop();
           }
@@ -63612,7 +63614,42 @@ new Vue({
       }, null, this);
     },
     deliver: function deliver() {
-      console.log('deliver');
+      var currentTab, tabId;
+      return regeneratorRuntime.async(function deliver$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              console.log('deliver');
+              _context3.next = 3;
+              return regeneratorRuntime.awrap(this.getCurrentTab());
+
+            case 3:
+              currentTab = _context3.sent;
+              tabId = currentTab ? currentTab.id : null;
+              console.log('tabs', currentTab, tabId);
+              chrome.tabs.sendMessage(tabId, {
+                privatekey: this.privatekey,
+                accounts: this.accounts
+              }, function (response) {
+                console.log('收到回复', response);
+              });
+
+            case 7:
+            case "end":
+              return _context3.stop();
+          }
+        }
+      }, null, this);
+    },
+    getCurrentTab: function getCurrentTab() {
+      return new Promise(function (resolve) {
+        chrome.tabs.query({
+          active: true,
+          currentWindow: true
+        }, function (tabs) {
+          return resolve(tabs[0]);
+        });
+      });
     }
   },
   created: function created() {

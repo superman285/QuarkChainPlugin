@@ -35,7 +35,7 @@ PrivateKeyProvider.prototype.sendAsync = function() {
 
 PrivateKeyProvider.prototype.send = function() {
 
-    return this.engine.send.apply(this.engine, arguments);
+    this.engine.send.apply(this.engine, arguments);
 
 };
 

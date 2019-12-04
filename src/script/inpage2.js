@@ -40617,13 +40617,13 @@ var PrivateKeyProvider = require("truffle-privatekey-provider"); //const Private
 
 
 var privateKey = "93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F";
-var pkProvider = new PrivateKeyProvider(privateKey, "https://rinkeby.infura.io/"); //let pkProvider = new PrivateKeyProvider(privateKey, "http://localhost:8545");
+var pkProvider = new PrivateKeyProvider(privateKey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6"); //let pkProvider = new PrivateKeyProvider(privateKey, "http://localhost:8545");
 
 console.log("web3 quarkchain", Web3);
 window.Web3 = Web3;
 var web3 = new Web3();
 window.web3 = web3;
-console.log('web3', web3);
+console.log("web3", web3);
 QuarkChain.injectWeb3(web3, "http://jrpc.devnet.quarkchain.io:38391");
 !window.QuarkChain && (window.QuarkChain = QuarkChain);
 web3.qkc.setPrivateKey("0x93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F"); //let localProvider = new Web3.providers.HttpProvider("http://localhost:7878");
@@ -40637,7 +40637,7 @@ PrivateKeyProvider.prototype.send = function (payload) {
   var result = null;
 
   switch (payload.method) {
-    case 'eth_accounts':
+    case "eth_accounts":
       payload.params = [];
       var address = web3.currentProvider.address;
       result = address ? [address] : [];
@@ -40656,7 +40656,7 @@ PrivateKeyProvider.prototype.sendAsync = function (payload) {
   var result = null;
 
   switch (payload.method) {
-    case 'eth_accounts':
+    case "eth_accounts":
       payload.params = [];
       var address = web3.currentProvider.address;
       result = address ? [address] : [];
@@ -40692,5 +40692,6 @@ var enable = web3.currentProvider.sendAsync.bind(null, {
 });
 web3.currentProvider.enable = enable;
 window.ethereum = web3.currentProvider;
+console.log("chrome yeah交互", chrome);
 
 },{"truffle-privatekey-provider":331}]},{},[350]);
