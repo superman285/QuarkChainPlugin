@@ -40616,21 +40616,23 @@ function extend() {
 var PrivateKeyProvider = require("truffle-privatekey-provider"); //const PrivateKeyProvider = require("./utils/web3-privatekey-provider.js");
 
 
-var privateKey = "93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F";
-var pkProvider = new PrivateKeyProvider(privateKey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6"); //let pkProvider = new PrivateKeyProvider(privateKey, "http://localhost:8545");
+var PRIVATE_KEY = "93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F"; //const PRIVATE_KEY = "5a546d5a6b605c731065e4ed32ae8f6a94efbc926463f72ee7691f2441335997";
+//let pkProvider = new PrivateKeyProvider(PRIVATE_KEY, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
+//let pkProvider = new PrivateKeyProvider(PRIVATE_KEY, "https://rinkeby.infura.io/");
+//let pkProvider = new PrivateKeyProvider(privateKey, "http://localhost:8545");
 
-console.log("web3 quarkchain", Web3);
-window.Web3 = Web3;
-var web3 = new Web3();
+console.log("web3 quarkchain", Web3, window.Web3, window); //window.Web3 = Web3;
+
+/*let web3 = new Web3();
 window.web3 = web3;
 console.log("web3", web3);
 QuarkChain.injectWeb3(web3, "http://jrpc.devnet.quarkchain.io:38391");
-!window.QuarkChain && (window.QuarkChain = QuarkChain);
-web3.qkc.setPrivateKey("0x93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F"); //let localProvider = new Web3.providers.HttpProvider("http://localhost:7878");
+!window.QuarkChain && (
+  window.QuarkChain = QuarkChain);*/
+//web3.qkc.setPrivateKey("0x93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F");
+//let localProvider = new Web3.providers.HttpProvider("http://localhost:7878");
 //let localProvider = new Web3.providers.HttpProvider("https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
-//web3.setProvider(localProvider);
-
-web3.setProvider(pkProvider);
+//web3.setProvider(pkProvider);
 
 PrivateKeyProvider.prototype.send = function (payload) {
   var self = this;
@@ -40639,26 +40641,7 @@ PrivateKeyProvider.prototype.send = function (payload) {
   switch (payload.method) {
     case "eth_accounts":
       payload.params = [];
-      var address = web3.currentProvider.address;
-      result = address ? [address] : [];
-      break;
-  }
-
-  return {
-    id: payload.id,
-    jsonrpc: payload.jsonrpc,
-    result: result
-  };
-};
-
-PrivateKeyProvider.prototype.sendAsync = function (payload) {
-  var self = this;
-  var result = null;
-
-  switch (payload.method) {
-    case "eth_accounts":
-      payload.params = [];
-      var address = web3.currentProvider.address;
+      var address = web3 && web3.currentProvider && web3.currentProvider.address;
       result = address ? [address] : [];
       break;
   }
@@ -40685,13 +40668,33 @@ console.log('unlock',unlockAccount);*/
   });
 };*/
 
-
-var enable = web3.currentProvider.sendAsync.bind(null, {
-  method: "eth_requestAccounts",
-  params: []
-});
+/*let enable = web3.currentProvider.sendAsync.bind(null, { method: "eth_requestAccounts", params: [] });
 web3.currentProvider.enable = enable;
-window.ethereum = web3.currentProvider;
-console.log("chrome yeah交互", chrome);
+window.ethereum = web3.currentProvider;*/
+
+
+window.addEventListener("message", function (e) {
+  console.log('听到了', e, chrome);
+  console.log(e.data);
+  var privatekey = e.data.privatekey;
+
+  if (privatekey) {
+    var _web = new Web3();
+
+    window.web3 = _web;
+    console.log("web3", _web);
+    QuarkChain.injectWeb3(_web, "http://jrpc.devnet.quarkchain.io:38391");
+    !window.QuarkChain && (window.QuarkChain = QuarkChain);
+    var pkProvider = new PrivateKeyProvider(privatekey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
+    console.log('setProvider');
+
+    _web.setProvider(pkProvider);
+
+    console.log('after set provider', _web);
+    /*let enable = web3.currentProvider.sendAsync.bind(null, { method: "eth_requestAccounts", params: [] });
+    web3.currentProvider.enable = enable;*/
+    //window.ethereum = web3.currentProvider;
+  }
+}, false);
 
 },{"truffle-privatekey-provider":331}]},{},[350]);

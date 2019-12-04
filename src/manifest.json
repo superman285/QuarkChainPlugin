@@ -17,12 +17,12 @@
     "scripts": ["script/background.js"]
   },
   "content_scripts": [{
-    "js": ["script/inject.js"],
+    "js": ["script/contentscript.js"],
     "matches": ["http://*/*", "https://*/*"],
     "run_at": "document_start",
     "all_frame": true
   }],
-  "web_accessible_resources" : ["script/inpage.js","script/inpage2.js"],
-  "permissions": ["cookies", "tabs", "notifications", "background", "contextMenus", "*://*/*"],
+  "web_accessible_resources" : ["script/injected.js","script/injected2.js"],
+  "permissions": ["storage","cookies", "tabs", "notifications", "background", "contextMenus", "*://*/*"],
   "content_security_policy": "style-src 'self' 'unsafe-inline';script-src 'self' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; object-src 'self' ;"
 }

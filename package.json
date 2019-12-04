@@ -6,9 +6,9 @@
     "mode": "npm"
   },
   "scripts": {
-    "ba_inpage": "cd src/script && browserify inpage.js -o inpage2.js -t [ babelify --presets[env]]",
+    "ba_contentscript": "cd src/script && browserify contentscript.js -o contentscript2.js -t [ babelify --presets[env]]",
     "ba_app": "cd src && browserify app.js -o app2.js -t [ babelify --presets[env]]",
-    "ba_inject": "cd src/script && browserify inject.js -o inject2.js -t [ babelify --presets[env]]",
+    "ba_injected": "cd src/script && browserify injected.js -o injected2.js -t [ babelify --presets[env]]",
     "babelify": "cd src && browserify app.js -o app_babelify.js -t [ babelify --presets[env]] && cd script && browserify inject.js -o inject_babelify.js -t [ babelify --presets[env]]",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

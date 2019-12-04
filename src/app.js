@@ -30,22 +30,30 @@ new Vue({
     async enter() {
       console.log("pk", this.privatekey,typeof this.privatekey);
 
-
+      if (!this.privatekey) {
+          console.log('请输入密钥');
+          //todo:要检查格式
+          return;
+      }
 
       const privateKey = await accountImporter.importAccount('Private Key', this.privatekey);
       console.log('privateKey',privateKey);
       const keyring = await keyringController.addNewKeyring("Simple Key Pair", [privateKey]);
       console.log('keyringController',keyringController);
-
       const accounts = await keyringController.getAccounts();
       console.log('accounts',accounts);
-
       this.accounts = accounts;
+
+      let item = await this.saveItem('accounts',accounts,()=>{
+          console.log('saveItem finish');
+      });
+      console.log('chrome storage save',item);
+
 
       //await this.importAccountWithStrategy('Private Key',this.privatekey);
     },
     async deliver() {
-      console.log('deliver');
+      console.log('deliver',chrome);
       let currentTab = await this.getCurrentTab();
       let tabId = currentTab ? currentTab.id : null;
       console.log('tabs',currentTab,tabId);
@@ -57,13 +65,33 @@ new Vue({
       return new Promise(resolve=>{
         chrome.tabs.query({active:true,currentWindow:true},tabs => resolve(tabs[0]));
       })
+    },
+    saveItem(itemField,data,callback) {
+      return new Promise(resolve=>{
+          chrome.storage.local.set({itemField:data},callback);
+          resolve({itemField:data});
+      })
+    },
+    getItem(itemField) {
+      return new Promise(resolve=>{
+          chrome.storage.local.get([itemField],result=>resolve(result[itemField]));
+      })
     }
   },
   created() {
     console.log("created");
   },
-  mounted() {
+  async mounted() {
     console.log("mounted");
+    let item = await this.getItem('accounts');
+    console.log('mounted item',item);
+    this.accounts = item;
+
+
+    if (item && item.length) {
+      console.log('可以注入');
+    }
+
   }
 });
 

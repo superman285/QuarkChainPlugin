@@ -63586,27 +63586,54 @@ new Vue({
           switch (_context2.prev = _context2.next) {
             case 0:
               console.log("pk", this.privatekey, _typeof(this.privatekey));
-              _context2.next = 3;
+
+              if (this.privatekey) {
+                _context2.next = 4;
+                break;
+              }
+
+              console.log('请输入密钥'); //todo:要检查格式
+
+              return _context2.abrupt("return");
+
+            case 4:
+              _context2.next = 6;
               return regeneratorRuntime.awrap(accountImporter.importAccount('Private Key', this.privatekey));
 
-            case 3:
+            case 6:
               privateKey = _context2.sent;
               console.log('privateKey', privateKey);
-              _context2.next = 7;
+              _context2.next = 10;
               return regeneratorRuntime.awrap(keyringController.addNewKeyring("Simple Key Pair", [privateKey]));
 
-            case 7:
+            case 10:
               keyring = _context2.sent;
               console.log('keyringController', keyringController);
-              _context2.next = 11;
+              _context2.next = 14;
               return regeneratorRuntime.awrap(keyringController.getAccounts());
 
-            case 11:
+            case 14:
               accounts = _context2.sent;
               console.log('accounts', accounts);
-              this.accounts = accounts; //await this.importAccountWithStrategy('Private Key',this.privatekey);
+              this.accounts = accounts;
+              /*let item = await this.saveItem('accounts',accounts,()=>{
+                console.log('saveItem');
+              });
+              console.log('chrome storage save',item);*/
 
-            case 14:
+              chrome.storage.local.set({
+                accounts: accounts
+              }, function () {
+                console.log('Value is set to ', accounts);
+              });
+              chrome.storage.local.get(['accounts'], function (result) {
+                console.log('Value currently is ', result);
+              });
+              /*let getItem = await this.getItem(['accounts']);
+              console.log('chrome storage get2',getItem);*/
+              //await this.importAccountWithStrategy('Private Key',this.privatekey);
+
+            case 19:
             case "end":
               return _context2.stop();
           }
@@ -63619,7 +63646,7 @@ new Vue({
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
-              console.log('deliver');
+              console.log('deliver', chrome);
               _context3.next = 3;
               return regeneratorRuntime.awrap(this.getCurrentTab());
 
@@ -63650,13 +63677,49 @@ new Vue({
           return resolve(tabs[0]);
         });
       });
+    },
+    saveItem: function saveItem(itemField, data, callback) {
+      return new Promise(function (resolve) {
+        chrome.storage.local.set({
+          itemField: data
+        }, callback);
+        resolve({
+          itemField: data
+        });
+      });
+    },
+    getItem: function getItem(itemField) {
+      return new Promise(function (resolve) {
+        chrome.storage.local.get([itemField], function (result) {
+          return resolve(result[itemField]);
+        });
+      });
     }
   },
   created: function created() {
     console.log("created");
   },
   mounted: function mounted() {
-    console.log("mounted");
+    var item;
+    return regeneratorRuntime.async(function mounted$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            console.log("mounted");
+            _context4.next = 3;
+            return regeneratorRuntime.awrap(this.getItem('accounts'));
+
+          case 3:
+            item = _context4.sent;
+            console.log('mounted item', item);
+            this.accounts = item;
+
+          case 6:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, null, this);
   }
 });
 
