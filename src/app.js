@@ -13,13 +13,12 @@ new Vue({
         inputPrivatekey: "",
         accountsToPrivatekeys: {},
         accounts: [],
-        selectedAccountIdx: 0,
+        selectedAccountIdx: 0
     },
     watch: {
-        selectedAccountIdx(newIdx,oldIdx) {
-            console.log('new selectedAccountIdx:',newIdx,'oldIdx:',oldIdx);
-            const selectedAccountIdx = newIdx;
-            this.sendDataToContentScript(this.accounts[selectedAccountIdx]);
+        selectedAccountIdx(newIdx, oldIdx) {
+            console.log("new selectedAccountIdx:", newIdx, "oldIdx:", oldIdx);
+
         }
     },
     methods: {
@@ -45,11 +44,17 @@ new Vue({
 
         },
         changeAccount(idx) {
-            console.log('changeAccount:',idx);
+            console.log("changeAccount:", idx);
+
+            if (idx === this.selectedAccountIdx) {
+                console.log('do not change');
+                return;
+            }
             this.selectedAccountIdx = idx;
             this.setItem("selectedAccountIdx", this.selectedAccountIdx, () => {
                 console.log("saveItem selectedAccountIdx finish");
-            })
+            });
+            this.sendDataToContentScript(this.accounts[idx]);
         },
         async enter() {
             console.log("pk", this.inputPrivatekey, typeof this.inputPrivatekey);
@@ -83,9 +88,9 @@ new Vue({
                 this.setItem("accountsToPrivatekeys", this.accountsToPrivatekeys, () => {
                     console.log("setItems accountsToPrivatekeys finish");
                 }),
-              this.setItem("selectedAccountIdx", this.selectedAccountIdx, () => {
-                console.log("setItems selectedAccountIdx finish");
-              })
+                this.setItem("selectedAccountIdx", this.selectedAccountIdx, () => {
+                    console.log("setItems selectedAccountIdx finish");
+                })
             ]);
             console.log("chrome storage set", setItems);
 
@@ -96,19 +101,7 @@ new Vue({
 
             let selectedAccount = accounts[this.selectedAccountIdx];
 
-          let currentTab = await this.getCurrentTab();
-          let tabId = currentTab ? currentTab.id : null;
-          console.log('privatekey',this.accountsToPrivatekeys[selectedAccount],selectedAccount);
-          if (tabId) {
-            /*chrome.tabs.sendMessage(tabId, {privatekey: this.accountsToPrivatekeys[selectedAccount], account: selectedAccount}, response => {
-              console.log("receive the message", response);
-            });*/
-            chrome.tabs.sendMessage(tabId, {privatekey: this.accountsToPrivatekeys[selectedAccount], account: selectedAccount}, response => {
-              console.log("receive the message", response);
-            });
-          }
-
-            //await this.sendDataToContentScript(accounts[this.selectedAccountIdx]);
+            this.sendDataToContentScript(accounts[this.selectedAccountIdx]);
 
             /*let currentTab = await this.getCurrentTab();
             let tabId = currentTab ? currentTab.id : null;
@@ -139,18 +132,18 @@ new Vue({
             this.accountsToPrivatekeys = {};
             this.selectedAccountIdx = 0;
 
-          let setItems = await Promise.all([
-            this.setItem("accounts", this.accounts, () => {
-              console.log("setItems accounts finish");
-            }),
-            this.setItem("accountsToPrivatekeys", this.accountsToPrivatekeys, () => {
-              console.log("setItems accountsToPrivatekeys finish");
-            }),
-            this.setItem("selectedAccountIdx", this.selectedAccountIdx, () => {
-              console.log("setItems selectedAccountIdx finish");
-            })
-          ]);
-          console.log("chrome storage clear", setItems);
+            let setItems = await Promise.all([
+                this.setItem("accounts", this.accounts, () => {
+                    console.log("setItems accounts finish");
+                }),
+                this.setItem("accountsToPrivatekeys", this.accountsToPrivatekeys, () => {
+                    console.log("setItems accountsToPrivatekeys finish");
+                }),
+                this.setItem("selectedAccountIdx", this.selectedAccountIdx, () => {
+                    console.log("setItems selectedAccountIdx finish");
+                })
+            ]);
+            console.log("chrome storage clear", setItems);
 
         },
         getCurrentTab() {
@@ -169,12 +162,20 @@ new Vue({
                 chrome.storage.local.get([itemField], result => resolve(result[itemField]));
             });
         },
-        async sendDataToContentScript(selectedAccount){
+        async sendDataToContentScript(selectedAccount) {
             let currentTab = await this.getCurrentTab();
+            console.log("currentTab", currentTab);
+            if (currentTab.url.includes('chrome://')) {
+                console.log('runtime not support onmessage');
+                return;
+            }
             let tabId = currentTab ? currentTab.id : null;
-            console.log('privatekey',this.accountsToPrivatekeys[selectedAccount],selectedAccount);
+            console.log("privatekey", this.accountsToPrivatekeys[selectedAccount], selectedAccount);
             if (tabId) {
-                chrome.tabs.sendMessage(tabId, {privatekey: this.accountsToPrivatekeys[selectedAccount], account: selectedAccount}, response => {
+                chrome.tabs.sendMessage(tabId, {
+                    privatekey: this.accountsToPrivatekeys[selectedAccount],
+                    account: selectedAccount
+                }, response => {
                     console.log("receive the message", response);
                 });
             }
@@ -185,12 +186,12 @@ new Vue({
     },
     async mounted() {
         console.log("mounted");
-        let [accounts,accountsToPrivatekeys,selectedAccountIdx] = await Promise.all([
+        let [accounts, accountsToPrivatekeys, selectedAccountIdx] = await Promise.all([
             this.getItem("accounts"),
             this.getItem("accountsToPrivatekeys"),
-            this.getItem("selectedAccountIdx"),
+            this.getItem("selectedAccountIdx")
         ]);
-        console.log("mounted accounts getitem", accounts,accountsToPrivatekeys,selectedAccountIdx);
+        console.log("mounted accounts getitem", accounts, accountsToPrivatekeys, selectedAccountIdx);
         if (accounts && accounts.length) {
             this.accounts = accounts;
             this.accountsToPrivatekeys = accountsToPrivatekeys;

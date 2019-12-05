@@ -63553,9 +63553,7 @@ new Vue({
   },
   watch: {
     selectedAccountIdx: function selectedAccountIdx(newIdx, oldIdx) {
-      console.log('new selectedAccountIdx:', newIdx, 'oldIdx:', oldIdx);
-      var selectedAccountIdx = newIdx;
-      this.sendDataToContentScript(this.accounts[selectedAccountIdx]);
+      console.log("new selectedAccountIdx:", newIdx, "oldIdx:", oldIdx);
     }
   },
   methods: {
@@ -63609,14 +63607,21 @@ new Vue({
       }, null, this);
     },
     changeAccount: function changeAccount(idx) {
-      console.log('changeAccount:', idx);
+      console.log("changeAccount:", idx);
+
+      if (idx === this.selectedAccountIdx) {
+        console.log('do not change');
+        return;
+      }
+
       this.selectedAccountIdx = idx;
       this.setItem("selectedAccountIdx", this.selectedAccountIdx, function () {
         console.log("saveItem selectedAccountIdx finish");
       });
+      this.sendDataToContentScript(this.accounts[idx]);
     },
     enter: function enter() {
-      var privateKey, keyring, accounts, addingAccount, setItems, getItem, getKey, getIdx, selectedAccount, currentTab, tabId;
+      var privateKey, keyring, accounts, addingAccount, setItems, getItem, getKey, getIdx, selectedAccount;
       return regeneratorRuntime.async(function enter$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -63688,26 +63693,7 @@ new Vue({
               getIdx = _context2.sent;
               console.log("chrome storage get", getItem, getKey, getIdx);
               selectedAccount = accounts[this.selectedAccountIdx];
-              _context2.next = 37;
-              return regeneratorRuntime.awrap(this.getCurrentTab());
-
-            case 37:
-              currentTab = _context2.sent;
-              tabId = currentTab ? currentTab.id : null;
-              console.log('privatekey', this.accountsToPrivatekeys[selectedAccount], selectedAccount);
-
-              if (tabId) {
-                /*chrome.tabs.sendMessage(tabId, {privatekey: this.accountsToPrivatekeys[selectedAccount], account: selectedAccount}, response => {
-                  console.log("receive the message", response);
-                });*/
-                chrome.tabs.sendMessage(tabId, {
-                  privatekey: this.accountsToPrivatekeys[selectedAccount],
-                  account: selectedAccount
-                }, function (response) {
-                  console.log("receive the message", response);
-                });
-              } //await this.sendDataToContentScript(accounts[this.selectedAccountIdx]);
-
+              this.sendDataToContentScript(accounts[this.selectedAccountIdx]);
               /*let currentTab = await this.getCurrentTab();
               let tabId = currentTab ? currentTab.id : null;
               if (tabId) {
@@ -63717,8 +63703,7 @@ new Vue({
               }*/
               //await this.importAccountWithStrategy('Private Key',this.privatekey);
 
-
-            case 41:
+            case 36:
             case "end":
               return _context2.stop();
           }
@@ -63821,8 +63806,19 @@ new Vue({
 
             case 2:
               currentTab = _context5.sent;
+              console.log("currentTab", currentTab);
+
+              if (!currentTab.url.includes('chrome://')) {
+                _context5.next = 7;
+                break;
+              }
+
+              console.log('runtime not support onmessage');
+              return _context5.abrupt("return");
+
+            case 7:
               tabId = currentTab ? currentTab.id : null;
-              console.log('privatekey', this.accountsToPrivatekeys[selectedAccount], selectedAccount);
+              console.log("privatekey", this.accountsToPrivatekeys[selectedAccount], selectedAccount);
 
               if (tabId) {
                 chrome.tabs.sendMessage(tabId, {
@@ -63833,7 +63829,7 @@ new Vue({
                 });
               }
 
-            case 6:
+            case 10:
             case "end":
               return _context5.stop();
           }
