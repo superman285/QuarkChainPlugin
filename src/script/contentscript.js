@@ -61,10 +61,9 @@ function getItem(itemField) {
 }
 
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     console.log('request sender sendResponse', request, sender, sendResponse);
-    sendResponse("我已收到你的消息：" + JSON.stringify(request));//做出回应
-
+    sendResponse("我已收到你的消息：",JSON.stringify(request));//做出回应
 
     let {privatekey, account} = request;
     console.log('accounts', account, privatekey);

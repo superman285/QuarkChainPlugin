@@ -63521,6 +63521,14 @@ function extend() {
 },{}],633:[function(require,module,exports){
 "use strict";
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -63608,7 +63616,7 @@ new Vue({
       });
     },
     enter: function enter() {
-      var privateKey, keyring, accounts, addingAccount, setItems, getItem, getKey, getIdx;
+      var privateKey, keyring, accounts, addingAccount, setItems, getItem, getKey, getIdx, selectedAccount, currentTab, tabId;
       return regeneratorRuntime.async(function enter$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -63679,7 +63687,27 @@ new Vue({
             case 32:
               getIdx = _context2.sent;
               console.log("chrome storage get", getItem, getKey, getIdx);
-              this.sendDataToContentScript(accounts[this.selectedAccountIdx]);
+              selectedAccount = accounts[this.selectedAccountIdx];
+              _context2.next = 37;
+              return regeneratorRuntime.awrap(this.getCurrentTab());
+
+            case 37:
+              currentTab = _context2.sent;
+              tabId = currentTab ? currentTab.id : null;
+              console.log('privatekey', this.accountsToPrivatekeys[selectedAccount], selectedAccount);
+
+              if (tabId) {
+                /*chrome.tabs.sendMessage(tabId, {privatekey: this.accountsToPrivatekeys[selectedAccount], account: selectedAccount}, response => {
+                  console.log("receive the message", response);
+                });*/
+                chrome.tabs.sendMessage(tabId, {
+                  privatekey: this.accountsToPrivatekeys[selectedAccount],
+                  account: selectedAccount
+                }, function (response) {
+                  console.log("receive the message", response);
+                });
+              } //await this.sendDataToContentScript(accounts[this.selectedAccountIdx]);
+
               /*let currentTab = await this.getCurrentTab();
               let tabId = currentTab ? currentTab.id : null;
               if (tabId) {
@@ -63689,7 +63717,8 @@ new Vue({
               }*/
               //await this.importAccountWithStrategy('Private Key',this.privatekey);
 
-            case 35:
+
+            case 41:
             case "end":
               return _context2.stop();
           }
@@ -63725,10 +63754,36 @@ new Vue({
       }, null, this);
     },
     clear: function clear() {
-      this.accounts = [];
-      chrome.storage.local.clear(function (e) {
-        console.log("clear storage data,", e);
-      });
+      var setItems;
+      return regeneratorRuntime.async(function clear$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              chrome.storage.local.clear(function (e) {
+                console.log("clear storage data,", e);
+              });
+              this.accounts = [];
+              this.accountsToPrivatekeys = {};
+              this.selectedAccountIdx = 0;
+              _context4.next = 6;
+              return regeneratorRuntime.awrap(Promise.all([this.setItem("accounts", this.accounts, function () {
+                console.log("setItems accounts finish");
+              }), this.setItem("accountsToPrivatekeys", this.accountsToPrivatekeys, function () {
+                console.log("setItems accountsToPrivatekeys finish");
+              }), this.setItem("selectedAccountIdx", this.selectedAccountIdx, function () {
+                console.log("setItems selectedAccountIdx finish");
+              })]));
+
+            case 6:
+              setItems = _context4.sent;
+              console.log("chrome storage clear", setItems);
+
+            case 8:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, null, this);
     },
     getCurrentTab: function getCurrentTab() {
       return new Promise(function (resolve) {
@@ -63757,17 +63812,17 @@ new Vue({
     },
     sendDataToContentScript: function sendDataToContentScript(selectedAccount) {
       var currentTab, tabId;
-      return regeneratorRuntime.async(function sendDataToContentScript$(_context4) {
+      return regeneratorRuntime.async(function sendDataToContentScript$(_context5) {
         while (1) {
-          switch (_context4.prev = _context4.next) {
+          switch (_context5.prev = _context5.next) {
             case 0:
-              _context4.next = 2;
+              _context5.next = 2;
               return regeneratorRuntime.awrap(this.getCurrentTab());
 
             case 2:
-              currentTab = _context4.sent;
+              currentTab = _context5.sent;
               tabId = currentTab ? currentTab.id : null;
-              console.log('privatekey', this.accountsToPrivatekeys[selectedAccount]);
+              console.log('privatekey', this.accountsToPrivatekeys[selectedAccount], selectedAccount);
 
               if (tabId) {
                 chrome.tabs.sendMessage(tabId, {
@@ -63780,7 +63835,7 @@ new Vue({
 
             case 6:
             case "end":
-              return _context4.stop();
+              return _context5.stop();
           }
         }
       }, null, this);
@@ -63790,27 +63845,34 @@ new Vue({
     console.log("created");
   },
   mounted: function mounted() {
-    var accounts;
-    return regeneratorRuntime.async(function mounted$(_context5) {
+    var _ref, _ref2, accounts, accountsToPrivatekeys, selectedAccountIdx;
+
+    return regeneratorRuntime.async(function mounted$(_context6) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context6.prev = _context6.next) {
           case 0:
             console.log("mounted");
-            _context5.next = 3;
-            return regeneratorRuntime.awrap(this.getItem("accounts"));
+            _context6.next = 3;
+            return regeneratorRuntime.awrap(Promise.all([this.getItem("accounts"), this.getItem("accountsToPrivatekeys"), this.getItem("selectedAccountIdx")]));
 
           case 3:
-            accounts = _context5.sent;
-            console.log("mounted accounts getitem", accounts);
+            _ref = _context6.sent;
+            _ref2 = _slicedToArray(_ref, 3);
+            accounts = _ref2[0];
+            accountsToPrivatekeys = _ref2[1];
+            selectedAccountIdx = _ref2[2];
+            console.log("mounted accounts getitem", accounts, accountsToPrivatekeys, selectedAccountIdx);
 
             if (accounts && accounts.length) {
               this.accounts = accounts;
+              this.accountsToPrivatekeys = accountsToPrivatekeys;
+              this.selectedAccountIdx = selectedAccountIdx;
               console.log("is able to inject");
             }
 
-          case 6:
+          case 10:
           case "end":
-            return _context5.stop();
+            return _context6.stop();
         }
       }
     }, null, this);

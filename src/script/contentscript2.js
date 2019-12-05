@@ -85,7 +85,7 @@ s3.onload = function () {
             console.log('get2', getAccounts, getKeys, getIdx);
 
             if (accounts && accounts.length) {
-              console.log('accounts not empty', accounts);
+              console.log('accounts not empty', accounts, accountsToPrivatekeys, selectedAccountIdx, accountsToPrivatekeys[accounts[selectedAccountIdx]]);
               _privatekey = accountsToPrivatekeys[accounts[selectedAccountIdx]];
               window.postMessage({
                 "test": 'hello！',
@@ -112,7 +112,7 @@ function getItem(itemField) {
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   console.log('request sender sendResponse', request, sender, sendResponse);
-  sendResponse("我已收到你的消息：" + JSON.stringify(request)); //做出回应
+  sendResponse("我已收到你的消息：", JSON.stringify(request)); //做出回应
 
   var privatekey = request.privatekey,
       account = request.account;
