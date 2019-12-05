@@ -6,6 +6,7 @@
 
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 //const PrivateKeyProvider = require("./utils/web3-privatekey-provider.js");
+
 const PRIVATE_KEY = "93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F";
 //const PRIVATE_KEY = "5a546d5a6b605c731065e4ed32ae8f6a94efbc926463f72ee7691f2441335997";
 //let pkProvider = new PrivateKeyProvider(PRIVATE_KEY, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
@@ -83,6 +84,7 @@ window.addEventListener("message", function(e) {
       window.QuarkChain = QuarkChain);
 
     let pkProvider = new PrivateKeyProvider(privatekey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
+
 
     console.log('setProvider');
     web3.setProvider(pkProvider);

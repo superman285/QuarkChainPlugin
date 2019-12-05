@@ -16,15 +16,24 @@
 
 
         <label for="pk">privatekey
-            <input type="password" id="pk" v-model="privatekey">
+            <input type="password" id="pk" v-model="inputPrivatekey">
         </label>
 
         <button @click="enter">enter</button>
         <button @click="deliver">deliver</button>
 
 
-
-        <h3 class="address" v-if="accounts && accounts.length"> {{ accounts[0] }}</h3>
+        <h3 class="address-wrap"
+            v-if="accounts && accounts.length"
+            v-for="account,idx in accounts"
+        >
+            <div class="address"
+                  @dblclick="changeAccount(idx)"
+            >{{ account }}</div>
+            <div class ="selectedFlag"
+                 v-if = "idx === selectedAccountIdx"
+            >✅</div>
+        </h3>
 
         <button class="clear" @click="clear">CLEAR</button>
 

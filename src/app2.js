@@ -63538,19 +63538,28 @@ new Vue({
   el: "#app",
   data: {
     message: "Hello, QuarkChain!",
-    privatekey: "",
-    accounts: []
+    inputPrivatekey: "",
+    accountsToPrivatekeys: {},
+    accounts: [],
+    selectedAccountIdx: 0
+  },
+  watch: {
+    selectedAccountIdx: function selectedAccountIdx(newIdx, oldIdx) {
+      console.log('new selectedAccountIdx:', newIdx, 'oldIdx:', oldIdx);
+      var selectedAccountIdx = newIdx;
+      this.sendDataToContentScript(this.accounts[selectedAccountIdx]);
+    }
   },
   methods: {
     //strategy:Private Key | JSON File
-    importAccountWithStrategy: function importAccountWithStrategy(strategy, args) {
-      var privateKey, keyring, accounts, allAccounts;
+    importAccountWithStrategy: function importAccountWithStrategy(strategy, privatekeyArgs) {
+      var privateKey, keyring, accounts, allAccounts, addingAccount;
       return regeneratorRuntime.async(function importAccountWithStrategy$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
               _context.next = 2;
-              return regeneratorRuntime.awrap(accountImporter.importAccount(strategy, args));
+              return regeneratorRuntime.awrap(accountImporter.importAccount(strategy, privatekeyArgs));
 
             case 2:
               privateKey = _context.sent;
@@ -63565,8 +63574,7 @@ new Vue({
 
             case 9:
               accounts = _context.sent;
-              console.log("accounts", accounts); // update accounts in preferences controller
-
+              console.log("accounts", accounts);
               _context.next = 13;
               return regeneratorRuntime.awrap(keyringController.getAccounts());
 
@@ -63574,22 +63582,40 @@ new Vue({
               allAccounts = _context.sent;
               console.log("allAccounts", allAccounts);
 
-            case 15:
+              if (accounts.length) {
+                _context.next = 17;
+                break;
+              }
+
+              return _context.abrupt("return");
+
+            case 17:
+              addingAccount = accounts[accounts.length - 1];
+              this.accountsToPrivatekeys[addingAccount] = privatekeyArgs;
+
+            case 19:
             case "end":
               return _context.stop();
           }
         }
+      }, null, this);
+    },
+    changeAccount: function changeAccount(idx) {
+      console.log('changeAccount:', idx);
+      this.selectedAccountIdx = idx;
+      this.setItem("selectedAccountIdx", this.selectedAccountIdx, function () {
+        console.log("saveItem selectedAccountIdx finish");
       });
     },
     enter: function enter() {
-      var privateKey, keyring, accounts, setItems, getItem, getKey;
+      var privateKey, keyring, accounts, addingAccount, setItems, getItem, getKey, getIdx;
       return regeneratorRuntime.async(function enter$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
-              console.log("pk", this.privatekey, _typeof(this.privatekey));
+              console.log("pk", this.inputPrivatekey, _typeof(this.inputPrivatekey));
 
-              if (this.privatekey) {
+              if (this.inputPrivatekey) {
                 _context2.next = 4;
                 break;
               }
@@ -63600,7 +63626,7 @@ new Vue({
 
             case 4:
               _context2.next = 6;
-              return regeneratorRuntime.awrap(accountImporter.importAccount("Private Key", this.privatekey));
+              return regeneratorRuntime.awrap(accountImporter.importAccount("Private Key", this.inputPrivatekey));
 
             case 6:
               privateKey = _context2.sent;
@@ -63618,33 +63644,52 @@ new Vue({
               accounts = _context2.sent;
               console.log("accounts", accounts);
               this.accounts = accounts;
+              this.selectedAccountIdx = accounts.length - 1;
+              addingAccount = accounts[this.selectedAccountIdx];
+              this.accountsToPrivatekeys[addingAccount] = this.inputPrivatekey;
               /*let item = await this.setItem("accounts", accounts, () => {
                   console.log("saveItem finish");
               });*/
 
-              _context2.next = 19;
+              _context2.next = 22;
               return regeneratorRuntime.awrap(Promise.all([this.setItem("accounts", accounts, function () {
-                console.log("saveItem accounts finish");
-              }), this.setItem("privatekey", this.privatekey, function () {
-                console.log("saveItem privatekey finish");
+                console.log("setItems accounts finish");
+              }), this.setItem("accountsToPrivatekeys", this.accountsToPrivatekeys, function () {
+                console.log("setItems accountsToPrivatekeys finish");
+              }), this.setItem("selectedAccountIdx", this.selectedAccountIdx, function () {
+                console.log("setItems selectedAccountIdx finish");
               })]));
 
-            case 19:
+            case 22:
               setItems = _context2.sent;
-              console.log("chrome storage save", setItems);
-              _context2.next = 23;
+              console.log("chrome storage set", setItems);
+              _context2.next = 26;
               return regeneratorRuntime.awrap(this.getItem("accounts"));
 
-            case 23:
-              getItem = _context2.sent;
-              _context2.next = 26;
-              return regeneratorRuntime.awrap(this.getItem("privatekey"));
-
             case 26:
-              getKey = _context2.sent;
-              console.log('chrome storage get', getItem, getKey); //await this.importAccountWithStrategy('Private Key',this.privatekey);
+              getItem = _context2.sent;
+              _context2.next = 29;
+              return regeneratorRuntime.awrap(this.getItem("accountsToPrivatekeys"));
 
-            case 28:
+            case 29:
+              getKey = _context2.sent;
+              _context2.next = 32;
+              return regeneratorRuntime.awrap(this.getItem("selectedAccountIdx"));
+
+            case 32:
+              getIdx = _context2.sent;
+              console.log("chrome storage get", getItem, getKey, getIdx);
+              this.sendDataToContentScript(accounts[this.selectedAccountIdx]);
+              /*let currentTab = await this.getCurrentTab();
+              let tabId = currentTab ? currentTab.id : null;
+              if (tabId) {
+                  chrome.tabs.sendMessage(tabId, {privatekey: this.inputPrivatekey, account: accounts[this.selectedAccountIdx]}, response => {
+                      console.log("receive the message", response);
+                  });
+              }*/
+              //await this.importAccountWithStrategy('Private Key',this.privatekey);
+
+            case 35:
             case "end":
               return _context2.stop();
           }
@@ -63666,7 +63711,7 @@ new Vue({
               tabId = currentTab ? currentTab.id : null;
               console.log("tabs", currentTab, tabId);
               chrome.tabs.sendMessage(tabId, {
-                privatekey: this.privatekey,
+                privatekey: this.inputPrivatekey,
                 accounts: this.accounts
               }, function (response) {
                 console.log("receive the message", response);
@@ -63682,7 +63727,7 @@ new Vue({
     clear: function clear() {
       this.accounts = [];
       chrome.storage.local.clear(function (e) {
-        console.log('clear,', e);
+        console.log("clear storage data,", e);
       });
     },
     getCurrentTab: function getCurrentTab() {
@@ -63709,33 +63754,63 @@ new Vue({
           return resolve(result[itemField]);
         });
       });
+    },
+    sendDataToContentScript: function sendDataToContentScript(selectedAccount) {
+      var currentTab, tabId;
+      return regeneratorRuntime.async(function sendDataToContentScript$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.next = 2;
+              return regeneratorRuntime.awrap(this.getCurrentTab());
+
+            case 2:
+              currentTab = _context4.sent;
+              tabId = currentTab ? currentTab.id : null;
+              console.log('privatekey', this.accountsToPrivatekeys[selectedAccount]);
+
+              if (tabId) {
+                chrome.tabs.sendMessage(tabId, {
+                  privatekey: this.accountsToPrivatekeys[selectedAccount],
+                  account: selectedAccount
+                }, function (response) {
+                  console.log("receive the message", response);
+                });
+              }
+
+            case 6:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, null, this);
     }
   },
   created: function created() {
     console.log("created");
   },
   mounted: function mounted() {
-    var item;
-    return regeneratorRuntime.async(function mounted$(_context4) {
+    var accounts;
+    return regeneratorRuntime.async(function mounted$(_context5) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
             console.log("mounted");
-            _context4.next = 3;
+            _context5.next = 3;
             return regeneratorRuntime.awrap(this.getItem("accounts"));
 
           case 3:
-            item = _context4.sent;
-            console.log("mounted item", item);
+            accounts = _context5.sent;
+            console.log("mounted accounts getitem", accounts);
 
-            if (item && item.length) {
-              this.accounts = item;
+            if (accounts && accounts.length) {
+              this.accounts = accounts;
               console.log("is able to inject");
             }
 
           case 6:
           case "end":
-            return _context4.stop();
+            return _context5.stop();
         }
       }
     }, null, this);

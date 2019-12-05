@@ -3,6 +3,14 @@
 
 var _this = void 0;
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 var injectionSite = document.head || document.documentElement;
 var s = document.createElement('script'),
     s2 = document.createElement('script'),
@@ -33,7 +41,8 @@ s3.onload = function () {
   s3.parentNode.removeChild(s3); //加载完injected脚本后再发消息 再改变currentProvider
 
   (function _callee() {
-    var item, privatekey;
+    var item, privatekey, _ref, _ref2, accounts, accountsToPrivatekeys, selectedAccountIdx, getAccounts, getKeys, getIdx, _privatekey;
+
     return regeneratorRuntime.async(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -48,17 +57,43 @@ s3.onload = function () {
 
           case 5:
             privatekey = _context.sent;
-            console.log('contentscript get accounts', item);
+            _context.next = 8;
+            return regeneratorRuntime.awrap(Promise.all([_this.getItem("accounts"), _this.getItem("accountsToPrivatekeys"), _this.getItem("selectedAccountIdx")]));
 
-            if (item && item.length && privatekey) {
-              console.log('item', item);
+          case 8:
+            _ref = _context.sent;
+            _ref2 = _slicedToArray(_ref, 3);
+            accounts = _ref2[0];
+            accountsToPrivatekeys = _ref2[1];
+            selectedAccountIdx = _ref2[2];
+            _context.next = 15;
+            return regeneratorRuntime.awrap(_this.getItem("accounts"));
+
+          case 15:
+            getAccounts = _context.sent;
+            _context.next = 18;
+            return regeneratorRuntime.awrap(_this.getItem("accountsToPrivatekeys"));
+
+          case 18:
+            getKeys = _context.sent;
+            _context.next = 21;
+            return regeneratorRuntime.awrap(_this.getItem("selectedAccountIdx"));
+
+          case 21:
+            getIdx = _context.sent;
+            console.log('contentscript get accounts', accounts, accountsToPrivatekeys, selectedAccountIdx);
+            console.log('get2', getAccounts, getKeys, getIdx);
+
+            if (accounts && accounts.length) {
+              console.log('accounts not empty', accounts);
+              _privatekey = accountsToPrivatekeys[accounts[selectedAccountIdx]];
               window.postMessage({
                 "test": 'hello！',
-                "privatekey": privatekey
+                "privatekey": _privatekey
               }, '*');
             }
 
-          case 8:
+          case 25:
           case "end":
             return _context.stop();
         }
@@ -74,23 +109,22 @@ function getItem(itemField) {
     });
   });
 }
-/*chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  console.log('request sender sendResponse',request,sender,sendResponse);
-  sendResponse("我已收到你的消息：" + JSON.stringify(request));//做出回应
 
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  console.log('request sender sendResponse', request, sender, sendResponse);
+  sendResponse("我已收到你的消息：" + JSON.stringify(request)); //做出回应
 
-  let {privatekey,accounts} = request;
-  console.log('accounts',accounts,privatekey);
-
-  privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
-
-  //const PrivateKeyProvider = require("truffle-privatekey-provider");
+  var privatekey = request.privatekey,
+      account = request.account;
+  console.log('accounts', account, privatekey);
+  privatekey.startsWith('0x') && (privatekey = privatekey.slice(2)); //const PrivateKeyProvider = require("truffle-privatekey-provider");
   //const privateKey = "93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F";
   //let pkProvider = new PrivateKeyProvider(privatekey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
 
-  window.postMessage({"test": 'hello！',"privatekey": privatekey}, '*');
-
-
-});*/
+  window.postMessage({
+    "greet": 'hello！',
+    "privatekey": privatekey
+  }, '*');
+});
 
 },{}]},{},[1]);
