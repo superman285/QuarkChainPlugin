@@ -11,6 +11,8 @@ function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) ||
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
+var DEVNET = 'http://devnet.quarkchain.io';
+var MAINNET = 'http://mainnet.quarkchain.io';
 var injectionSite = document.head || document.documentElement;
 var s = document.createElement('script'),
     s2 = document.createElement('script'),
@@ -38,7 +40,7 @@ s2.onload = function () {
 
 s3.onload = function () {
   console.log('inject chrome', chrome);
-  s3.parentNode.removeChild(s3); //加载完injected脚本后再发消息 再改变currentProvider
+  s3.parentNode.removeChild(s3); //加载完injected脚本后再发消息 改变currentProvider
 
   (function _callee() {
     var item, privatekey, _ref, _ref2, accounts, accountsToPrivatekeys, selectedAccountIdx, getAccounts, getKeys, getIdx, _privatekey;
@@ -85,12 +87,20 @@ s3.onload = function () {
             console.log('get2', getAccounts, getKeys, getIdx);
 
             if (accounts && accounts.length) {
-              console.log('accounts not empty', accounts, accountsToPrivatekeys, selectedAccountIdx, accountsToPrivatekeys[accounts[selectedAccountIdx]]);
+              console.log('accounts2 not empty', accounts, accountsToPrivatekeys, selectedAccountIdx, accountsToPrivatekeys[accounts[selectedAccountIdx]]);
               _privatekey = accountsToPrivatekeys[accounts[selectedAccountIdx]];
-              window.postMessage({
-                "test": 'hello！',
-                "privatekey": _privatekey
-              }, '*');
+
+              if (window.origin && window.origin.includes(MAINNET)) {
+                window.postMessage({
+                  "greetFromContentScript": 'hello！',
+                  "privatekey": _privatekey
+                }, MAINNET);
+              } else if (window.origin && window.origin.includes(DEVNET)) {
+                window.postMessage({
+                  "greetFromContentScript": 'hello！',
+                  "privatekey": _privatekey
+                }, DEVNET);
+              }
             }
 
           case 25:
@@ -111,20 +121,69 @@ function getItem(itemField) {
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  console.log('request sender sendResponse', request, sender, sendResponse);
-  sendResponse("我已收到你的消息：", JSON.stringify(request)); //做出回应
+  console.log('contentscript request sender sendResponse', request, sender, sendResponse);
+  sendResponse("我contentScript已收到你的消息：" + JSON.stringify(request)); //做出回应
+  //safer to use JSON.parse
 
-  var privatekey = request.privatekey,
-      account = request.account;
+  var _JSON$parse = JSON.parse(JSON.stringify(request)),
+      privatekey = _JSON$parse.privatekey,
+      account = _JSON$parse.account;
+
   console.log('accounts', account, privatekey);
-  privatekey.startsWith('0x') && (privatekey = privatekey.slice(2)); //const PrivateKeyProvider = require("truffle-privatekey-provider");
-  //const privateKey = "93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F";
-  //let pkProvider = new PrivateKeyProvider(privatekey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
 
-  window.postMessage({
-    "greet": 'hello！',
-    "privatekey": privatekey
-  }, '*');
+  var _JSON$parse2 = JSON.parse(JSON.stringify(request)),
+      signConfirm = _JSON$parse2.signConfirm;
+
+  console.log('signConfirm', signConfirm);
+
+  if (window.origin && window.origin.includes(MAINNET)) {
+    if (privatekey) {
+      privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
+      window.postMessage({
+        "greetFromContentScript": 'hello！',
+        "privatekey": privatekey
+      }, MAINNET);
+    }
+
+    if (typeof signConfirm === 'boolean') {
+      window.postMessage({
+        "greetFromContentScript": 'hello！',
+        signConfirm: signConfirm
+      }, MAINNET);
+    }
+  } else if (window.origin && window.origin.includes(DEVNET)) {
+    if (privatekey) {
+      privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
+      window.postMessage({
+        "greetFromContentScript": 'hello！',
+        "privatekey": privatekey
+      }, DEVNET);
+    }
+
+    if (typeof signConfirm === 'boolean') {
+      window.postMessage({
+        "greetFromContentScript": 'hello！',
+        signConfirm: signConfirm
+      }, DEVNET);
+    }
+  }
+});
+window.addEventListener("message", function (e) {
+  console.log('contentscript hear message', e, chrome);
+  console.log(e.data);
+  var _e$data = e.data,
+      shouldNotice = _e$data.shouldNotice,
+      txInfoArr = _e$data.txInfoArr;
+
+  if (shouldNotice && txInfoArr && txInfoArr.length) {
+    chrome.runtime.sendMessage({
+      "greetFromContentScript": 'hello！',
+      "shouldNotice": true,
+      txInfoArr: txInfoArr
+    }, function (response) {
+      console.log('contentScript response', response);
+    });
+  }
 });
 
 },{}]},{},[1]);

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuarkChain Sign Notification</title>
+    <script src="https://unpkg.com/vue@2.6.10/dist/vue.js"></script>
+</head>
+<body>
+
+    <div id="app">
+        <h1>Signature Confirmation</h1>
+
+        <h2>TX INFOS</h2>
+
+        <template v-for="txData,idx in txInfos">
+            <div>{{txData.name}}</div>
+            <span>{{txData.value}}</span>
+            <div>-----------------------</div>
+        </template>
+
+        <button class="cancel-btn"
+                @click="cancel"
+        >Cancel</button>
+        <button class="confirm-btn"
+                @click="confirm"
+        >Confirm</button>
+
+    </div>
+
+    <script src="./script/sign-notification.js"></script>
+</body>
+</html>

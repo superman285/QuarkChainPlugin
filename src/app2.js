@@ -63724,7 +63724,11 @@ new Vue({
               currentTab = _context3.sent;
               tabId = currentTab ? currentTab.id : null;
               console.log("tabs", currentTab, tabId);
-              chrome.tabs.sendMessage(tabId, {
+              /*chrome.tabs.sendMessage(tabId, {privatekey: this.inputPrivatekey, accounts: this.accounts}, response => {
+                  console.log("receive the message", response);
+              });*/
+
+              chrome.runtime.sendMessage({
                 privatekey: this.inputPrivatekey,
                 accounts: this.accounts
               }, function (response) {
@@ -63866,7 +63870,15 @@ new Vue({
               console.log("is able to inject");
             }
 
-          case 10:
+            chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+              console.log('popup request sender sendResponse', request, sender, sendResponse);
+              sendResponse("我已收到你的消息：", JSON.stringify(request));
+              console.log('chrome', chrome);
+              var shouldNotice = request.shouldNotice;
+              console.log('shouldNotice', shouldNotice);
+            });
+
+          case 11:
           case "end":
             return _context6.stop();
         }

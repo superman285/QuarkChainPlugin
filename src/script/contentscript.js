@@ -1,3 +1,6 @@
+const DEVNET = 'http://devnet.quarkchain.io';
+const MAINNET = 'http://mainnet.quarkchain.io';
+
 const injectionSite = (
     document.head || document.documentElement);
 let s = document.createElement('script'),
@@ -29,8 +32,7 @@ s3.onload = () => {
     console.log('inject chrome', chrome);
     s3.parentNode.removeChild(s3);
 
-    //加载完injected脚本后再发消息 再改变currentProvider
-
+    //加载完injected脚本后再发消息 改变currentProvider
     (
         async () => {
             let item = await this.getItem('accounts');
@@ -46,12 +48,18 @@ s3.onload = () => {
             console.log('contentscript get accounts', accounts,accountsToPrivatekeys,selectedAccountIdx);
             console.log('get2',getAccounts,getKeys,getIdx);
             if (accounts && accounts.length) {
-                console.log('accounts not empty', accounts,accountsToPrivatekeys,selectedAccountIdx,accountsToPrivatekeys[accounts[selectedAccountIdx]]);
+                console.log('accounts2 not empty', accounts,accountsToPrivatekeys,selectedAccountIdx,accountsToPrivatekeys[accounts[selectedAccountIdx]]);
                 let privatekey = accountsToPrivatekeys[accounts[selectedAccountIdx]];
-                window.postMessage({"test": 'hello！', "privatekey": privatekey}, '*');
+
+
+                if (window.origin && window.origin.includes(MAINNET)) {
+                    window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, MAINNET);
+                }else if (window.origin && window.origin.includes(DEVNET)) {
+                    window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, DEVNET);
+                }
+
             }
         })()
-
 };
 
 function getItem(itemField) {
@@ -60,26 +68,47 @@ function getItem(itemField) {
     })
 }
 
-
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log('request sender sendResponse', request, sender, sendResponse);
-    sendResponse("我已收到你的消息：",JSON.stringify(request));//做出回应
+    console.log('contentscript request sender sendResponse', request, sender, sendResponse);
+    sendResponse("我contentScript已收到你的消息："+JSON.stringify(request));//做出回应
 
-    let {privatekey, account} = request;
+    //safer to use JSON.parse
+    let {privatekey, account} = JSON.parse(JSON.stringify(request));
     console.log('accounts', account, privatekey);
 
-    privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
-
-    //const PrivateKeyProvider = require("truffle-privatekey-provider");
-    //const privateKey = "93945E79D3FD4D0FDC60CB2C9031B2D8ACF3C688F3185C0730ED30D85C66B77F";
-    //let pkProvider = new PrivateKeyProvider(privatekey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
-
-    window.postMessage({"greet": 'hello！', "privatekey": privatekey}, '*');
+    let {signConfirm} = JSON.parse(JSON.stringify(request));
+    console.log('signConfirm',signConfirm);
 
 
+    if (window.origin && window.origin.includes(MAINNET)) {
+        if (privatekey) {
+            privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
+            window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, MAINNET);
+        }
+        if (typeof signConfirm === 'boolean') {
+            window.postMessage({"greetFromContentScript": 'hello！', signConfirm}, MAINNET);
+        }
+    }else if (window.origin && window.origin.includes(DEVNET)) {
+        if (privatekey) {
+            privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
+            window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, DEVNET);
+        }
+        if (typeof signConfirm === 'boolean') {
+            window.postMessage({"greetFromContentScript": 'hello！', signConfirm}, DEVNET);
+        }
+    }
 });
 
-
+window.addEventListener("message", function (e) {
+    console.log('contentscript hear message', e, chrome);
+    console.log(e.data);
+    let {shouldNotice,txInfoArr} = e.data
+    if (shouldNotice && txInfoArr && txInfoArr.length) {
+        chrome.runtime.sendMessage({"greetFromContentScript": 'hello！', "shouldNotice": true, txInfoArr},response=>{
+            console.log('contentScript response',response);
+        })
+    }
+});
 
 
 

@@ -118,7 +118,10 @@ new Vue({
             let currentTab = await this.getCurrentTab();
             let tabId = currentTab ? currentTab.id : null;
             console.log("tabs", currentTab, tabId);
-            chrome.tabs.sendMessage(tabId, {privatekey: this.inputPrivatekey, accounts: this.accounts}, response => {
+            /*chrome.tabs.sendMessage(tabId, {privatekey: this.inputPrivatekey, accounts: this.accounts}, response => {
+                console.log("receive the message", response);
+            });*/
+            chrome.runtime.sendMessage({privatekey: this.inputPrivatekey, accounts: this.accounts}, response => {
                 console.log("receive the message", response);
             });
         },
@@ -198,6 +201,17 @@ new Vue({
             this.selectedAccountIdx = selectedAccountIdx;
             console.log("is able to inject");
         }
+
+
+
+        chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+            console.log('popup request sender sendResponse', request, sender, sendResponse);
+            sendResponse("我已收到你的消息：",JSON.stringify(request));
+            console.log('chrome',chrome);
+            let {shouldNotice} = request;
+            console.log('shouldNotice', shouldNotice);
+
+        });
     }
 });
 

@@ -6,6 +6,9 @@
     "mode": "npm"
   },
   "scripts": {
+    "ba_bg": "cd src/script && browserify background.js -o bg.js -t [ babelify --presets[env]]",
+
+    "ba_sign": "cd src/script && browserify sign-notification.js -o sign.js -t [ babelify --presets[env]]",
     "ba_contentscript": "cd src/script && browserify contentscript.js -o contentscript2.js -t [ babelify --presets[env]]",
     "ba_app": "cd src && browserify app.js -o app2.js -t [ babelify --presets[env]]",
     "ba_injected": "cd src/script && browserify injected.js -o injected2.js -t [ babelify --presets[env]]",
@@ -19,6 +22,7 @@
   "dependencies": {
     "@truffle/hdwallet-provider": "^1.0.26",
     "babel-polyfill": "^6.26.0",
+    "eth-json-rpc-errors": "^2.0.0",
     "eth-keyring-controller": "^5.4.0",
     "eth-ledger-bridge-keyring": "^0.2.0",
     "ethereumjs-util": "^6.2.0",
