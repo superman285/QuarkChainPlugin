@@ -13,15 +13,11 @@
 
     <div id="app">
         <h1>{{message}}</h1>
-
-
         <label for="pk">privatekey
             <input type="password" id="pk" v-model="inputPrivatekey">
         </label>
-
         <button @click="enter">enter</button>
         <button @click="deliver">deliver</button>
-
 
         <h3 class="address-wrap"
             v-if="accounts && accounts.length"

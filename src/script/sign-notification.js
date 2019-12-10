@@ -8,7 +8,6 @@ new Vue({
         txInfos: []
     },
     methods: {
-
         getCurrentWindowID() {
             return new Promise(resolve => {
                 chrome.windows.getCurrent(curWindow => resolve(curWindow.id))
@@ -16,14 +15,13 @@ new Vue({
         },
         async removeCurWindow(callback) {
             let curWindowID = await this.getCurrentWindowID();
-            console.log('curWindowID',curWindowID);
             chrome.windows.remove(curWindowID,callback);
         },
 
         async confirm() {
             let currentTab = await this.getCurrentTab();
             if (currentTab.url.includes('chrome://')) {
-                console.log('runtime not support onmessage');
+                console.log('runtime donot support onmessage');
                 return;
             }
             let tabId = currentTab ? currentTab.id : null;
@@ -35,14 +33,14 @@ new Vue({
                 });
             }
             this.removeCurWindow(()=>{
-                console.log('confirm & close notifaction window');
+                console.log('confirm,close notifaction window');
             });
         },
 
         async cancel() {
             let currentTab = await this.getCurrentTab();
             if (currentTab.url.includes('chrome://')) {
-                console.log('runtime not support onmessage');
+                console.log('runtime donot support onmessage');
                 return;
             }
             let tabId = currentTab ? currentTab.id : null;
@@ -55,7 +53,7 @@ new Vue({
             }
 
             this.removeCurWindow(()=>{
-                console.log('cancel & close notifaction window');
+                console.log('cancel,close notifaction window');
             });
         },
 
@@ -65,32 +63,18 @@ new Vue({
             });
         },
     },
-    /*beforeCreate() {
-        console.log('sign notification created');
-        chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-            console.log('signNotification request sender sendResponse', request, sender, sendResponse);
-            let {txInfoArr} = JSON.parse(JSON.stringify(request));
-            console.log('txInfoArr',txInfoArr);
-        })
 
-    },*/
     created() {
-
-        console.log('created');
-
         chrome.runtime.getBackgroundPage(bgObj=>{
-            console.log('bgObj',bgObj,bgObj.getTxInfoArr2);
-            let txInfoArr = bgObj.getTxInfoArr2();
+            console.log('bgObj',bgObj,bgObj.getTxInfoArr);
+            let txInfoArr = bgObj.getTxInfoArr();
             console.log('txInfoArr',txInfoArr);
-
             this.txInfos = txInfoArr;
         })
-
     },
 
     mounted() {
-        console.log('sign notification');
-
-
+        console.log('sign notification page mounted');
     }
-})
+
+});

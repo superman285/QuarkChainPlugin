@@ -25,30 +25,13 @@ function PrivateKeyProvider(privateKey, providerUrl) {
     this.engine.addProvider(new WalletSubprovider(this.wallet, {}));
     this.engine.addProvider(new RpcSubprovider({rpcUrl: providerUrl}));
 
-    //不start 一直卡在await上
+
     this.engine.start();
 }
 
 PrivateKeyProvider.prototype.sendAsync = function () {
 
-    /*console.log('sendAsync,arguments',chrome,window);
-    console.log(arguments);
-
-    //todo 如果 方法是eth_signTypedData 做个拦截 还有 engine start的bug修复下
-
-    let random = Math.random() * 5;
-
-    console.log('random',random);
-    if (random>2) {
-        console.log('不通过 不给');
-    }else {
-        this.engine.sendAsync.apply(this.engine, arguments);
-    }*/
-
     this.engine.sendAsync.apply(this.engine, arguments);
-
-
-
 };
 
 PrivateKeyProvider.prototype.send = function () {

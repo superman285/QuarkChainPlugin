@@ -45,19 +45,15 @@ s3.onload = () => {
             let getAccounts = await this.getItem("accounts");
             let getKeys = await this.getItem("accountsToPrivatekeys");
             let getIdx = await this.getItem("selectedAccountIdx");
-            console.log('contentscript get accounts', accounts,accountsToPrivatekeys,selectedAccountIdx);
-            console.log('get2',getAccounts,getKeys,getIdx);
+
             if (accounts && accounts.length) {
-                console.log('accounts2 not empty', accounts,accountsToPrivatekeys,selectedAccountIdx,accountsToPrivatekeys[accounts[selectedAccountIdx]]);
                 let privatekey = accountsToPrivatekeys[accounts[selectedAccountIdx]];
-
-
+                privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
                 if (window.origin && window.origin.includes(MAINNET)) {
                     window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, MAINNET);
                 }else if (window.origin && window.origin.includes(DEVNET)) {
                     window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, DEVNET);
                 }
-
             }
         })()
 };
@@ -69,16 +65,11 @@ function getItem(itemField) {
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log('contentscript request sender sendResponse', request, sender, sendResponse);
-    sendResponse("我contentScript已收到你的消息："+JSON.stringify(request));//做出回应
+    sendResponse("contentScript receive message："+JSON.stringify(request));
 
     //safer to use JSON.parse
     let {privatekey, account} = JSON.parse(JSON.stringify(request));
-    console.log('accounts', account, privatekey);
-
     let {signConfirm} = JSON.parse(JSON.stringify(request));
-    console.log('signConfirm',signConfirm);
-
 
     if (window.origin && window.origin.includes(MAINNET)) {
         if (privatekey) {
@@ -100,12 +91,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 window.addEventListener("message", function (e) {
-    console.log('contentscript hear message', e, chrome);
-    console.log(e.data);
-    let {shouldNotice,txInfoArr} = e.data
+    let {shouldNotice,txInfoArr} = e.data;
     if (shouldNotice && txInfoArr && txInfoArr.length) {
         chrome.runtime.sendMessage({"greetFromContentScript": 'hello！', "shouldNotice": true, txInfoArr},response=>{
-            console.log('contentScript response',response);
+            console.log('contentScript sendMessage',response);
         })
     }
 });

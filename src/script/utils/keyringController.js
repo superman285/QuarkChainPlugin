@@ -10,17 +10,7 @@ const additionalKeyringTypes = [LedgerBridgeKeyring];
 
 let keyringController = new KeyringController({
     keyringTypes:additionalKeyringTypes,
-    //iinitState
-
-    /*encryptor: { // An optional object for defining encryption schemes:
-      // Defaults to Browser-native SubtleCrypto.
-      encrypt (password, object) {
-        return new Promise('encrypted!')
-      },
-      decrypt (password, encryptedString) {
-        return new Promise({ foo: 'bar' })
-      },
-    },*/
+    //initState
 });
 
 module.exports = keyringController;

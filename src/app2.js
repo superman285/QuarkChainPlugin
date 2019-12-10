@@ -63531,9 +63531,8 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+require("babel-polyfill"); //const store = require('../store');
 
-require("babel-polyfill");
 
 var accountImporter = require("./script/utils/accountImporter");
 
@@ -63541,9 +63540,9 @@ var keyringController = require("./script/utils/keyringController"); //临时设
 
 
 keyringController.password = "123456";
-console.log("acc", accountImporter, keyringController);
 new Vue({
   el: "#app",
+  //store
   data: {
     message: "Hello, QuarkChain!",
     inputPrivatekey: "",
@@ -63553,11 +63552,10 @@ new Vue({
   },
   watch: {
     selectedAccountIdx: function selectedAccountIdx(newIdx, oldIdx) {
-      console.log("new selectedAccountIdx:", newIdx, "oldIdx:", oldIdx);
+      console.log("account change, new selectedAccountIdx:", newIdx, "oldIdx:", oldIdx);
     }
   },
   methods: {
-    //strategy:Private Key | JSON File
     importAccountWithStrategy: function importAccountWithStrategy(strategy, privatekeyArgs) {
       var privateKey, keyring, accounts, allAccounts, addingAccount;
       return regeneratorRuntime.async(function importAccountWithStrategy$(_context) {
@@ -63574,32 +63572,29 @@ new Vue({
 
             case 5:
               keyring = _context.sent;
-              console.log("keyringController", keyringController, keyringController.keyringTypes["SimpleKeyring"].type);
-              _context.next = 9;
+              _context.next = 8;
               return regeneratorRuntime.awrap(keyring.getAccounts());
 
-            case 9:
+            case 8:
               accounts = _context.sent;
-              console.log("accounts", accounts);
-              _context.next = 13;
+              _context.next = 11;
               return regeneratorRuntime.awrap(keyringController.getAccounts());
 
-            case 13:
+            case 11:
               allAccounts = _context.sent;
-              console.log("allAccounts", allAccounts);
 
               if (accounts.length) {
-                _context.next = 17;
+                _context.next = 14;
                 break;
               }
 
               return _context.abrupt("return");
 
-            case 17:
+            case 14:
               addingAccount = accounts[accounts.length - 1];
               this.accountsToPrivatekeys[addingAccount] = privatekeyArgs;
 
-            case 19:
+            case 16:
             case "end":
               return _context.stop();
           }
@@ -63607,10 +63602,7 @@ new Vue({
       }, null, this);
     },
     changeAccount: function changeAccount(idx) {
-      console.log("changeAccount:", idx);
-
       if (idx === this.selectedAccountIdx) {
-        console.log('do not change');
         return;
       }
 
@@ -63621,89 +63613,53 @@ new Vue({
       this.sendDataToContentScript(this.accounts[idx]);
     },
     enter: function enter() {
-      var privateKey, keyring, accounts, addingAccount, setItems, getItem, getKey, getIdx, selectedAccount;
+      var privateKey, keyring, accounts, addingAccount, setItems, selectedAccount;
       return regeneratorRuntime.async(function enter$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
-              console.log("pk", this.inputPrivatekey, _typeof(this.inputPrivatekey));
-
               if (this.inputPrivatekey) {
-                _context2.next = 4;
+                _context2.next = 2;
                 break;
               }
 
-              console.log("please input the key"); //todo: need to check the format of key
-
               return _context2.abrupt("return");
 
-            case 4:
-              _context2.next = 6;
+            case 2:
+              _context2.next = 4;
               return regeneratorRuntime.awrap(accountImporter.importAccount("Private Key", this.inputPrivatekey));
 
-            case 6:
+            case 4:
               privateKey = _context2.sent;
-              console.log("privateKey", privateKey);
-              _context2.next = 10;
+              _context2.next = 7;
               return regeneratorRuntime.awrap(keyringController.addNewKeyring("Simple Key Pair", [privateKey]));
 
-            case 10:
+            case 7:
               keyring = _context2.sent;
-              console.log("keyringController", keyringController);
-              _context2.next = 14;
+              _context2.next = 10;
               return regeneratorRuntime.awrap(keyringController.getAccounts());
 
-            case 14:
+            case 10:
               accounts = _context2.sent;
-              console.log("accounts", accounts);
               this.accounts = accounts;
               this.selectedAccountIdx = accounts.length - 1;
               addingAccount = accounts[this.selectedAccountIdx];
               this.accountsToPrivatekeys[addingAccount] = this.inputPrivatekey;
-              /*let item = await this.setItem("accounts", accounts, () => {
-                  console.log("saveItem finish");
-              });*/
-
-              _context2.next = 22;
+              _context2.next = 17;
               return regeneratorRuntime.awrap(Promise.all([this.setItem("accounts", accounts, function () {
-                console.log("setItems accounts finish");
+                console.log("set accounts finish");
               }), this.setItem("accountsToPrivatekeys", this.accountsToPrivatekeys, function () {
-                console.log("setItems accountsToPrivatekeys finish");
+                console.log("set accountsToPrivatekeys finish");
               }), this.setItem("selectedAccountIdx", this.selectedAccountIdx, function () {
-                console.log("setItems selectedAccountIdx finish");
+                console.log("set selectedAccountIdx finish");
               })]));
 
-            case 22:
+            case 17:
               setItems = _context2.sent;
-              console.log("chrome storage set", setItems);
-              _context2.next = 26;
-              return regeneratorRuntime.awrap(this.getItem("accounts"));
-
-            case 26:
-              getItem = _context2.sent;
-              _context2.next = 29;
-              return regeneratorRuntime.awrap(this.getItem("accountsToPrivatekeys"));
-
-            case 29:
-              getKey = _context2.sent;
-              _context2.next = 32;
-              return regeneratorRuntime.awrap(this.getItem("selectedAccountIdx"));
-
-            case 32:
-              getIdx = _context2.sent;
-              console.log("chrome storage get", getItem, getKey, getIdx);
               selectedAccount = accounts[this.selectedAccountIdx];
               this.sendDataToContentScript(accounts[this.selectedAccountIdx]);
-              /*let currentTab = await this.getCurrentTab();
-              let tabId = currentTab ? currentTab.id : null;
-              if (tabId) {
-                  chrome.tabs.sendMessage(tabId, {privatekey: this.inputPrivatekey, account: accounts[this.selectedAccountIdx]}, response => {
-                      console.log("receive the message", response);
-                  });
-              }*/
-              //await this.importAccountWithStrategy('Private Key',this.privatekey);
 
-            case 36:
+            case 20:
             case "end":
               return _context2.stop();
           }
@@ -63716,18 +63672,12 @@ new Vue({
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
-              console.log("deliver", chrome);
-              _context3.next = 3;
+              _context3.next = 2;
               return regeneratorRuntime.awrap(this.getCurrentTab());
 
-            case 3:
+            case 2:
               currentTab = _context3.sent;
               tabId = currentTab ? currentTab.id : null;
-              console.log("tabs", currentTab, tabId);
-              /*chrome.tabs.sendMessage(tabId, {privatekey: this.inputPrivatekey, accounts: this.accounts}, response => {
-                  console.log("receive the message", response);
-              });*/
-
               chrome.runtime.sendMessage({
                 privatekey: this.inputPrivatekey,
                 accounts: this.accounts
@@ -63735,7 +63685,7 @@ new Vue({
                 console.log("receive the message", response);
               });
 
-            case 7:
+            case 5:
             case "end":
               return _context3.stop();
           }
@@ -63756,11 +63706,11 @@ new Vue({
               this.selectedAccountIdx = 0;
               _context4.next = 6;
               return regeneratorRuntime.awrap(Promise.all([this.setItem("accounts", this.accounts, function () {
-                console.log("setItems accounts finish");
+                console.log("set accounts finish");
               }), this.setItem("accountsToPrivatekeys", this.accountsToPrivatekeys, function () {
-                console.log("setItems accountsToPrivatekeys finish");
+                console.log("set accountsToPrivatekeys finish");
               }), this.setItem("selectedAccountIdx", this.selectedAccountIdx, function () {
-                console.log("setItems selectedAccountIdx finish");
+                console.log("set selectedAccountIdx finish");
               })]));
 
             case 6:
@@ -63777,8 +63727,9 @@ new Vue({
     getCurrentTab: function getCurrentTab() {
       return new Promise(function (resolve) {
         chrome.tabs.query({
-          active: true,
-          currentWindow: true
+          active: true
+          /*, currentWindow: true*/
+
         }, function (tabs) {
           return resolve(tabs[0]);
         });
@@ -63810,19 +63761,17 @@ new Vue({
 
             case 2:
               currentTab = _context5.sent;
-              console.log("currentTab", currentTab);
 
               if (!currentTab.url.includes('chrome://')) {
-                _context5.next = 7;
+                _context5.next = 6;
                 break;
               }
 
               console.log('runtime not support onmessage');
               return _context5.abrupt("return");
 
-            case 7:
+            case 6:
               tabId = currentTab ? currentTab.id : null;
-              console.log("privatekey", this.accountsToPrivatekeys[selectedAccount], selectedAccount);
 
               if (tabId) {
                 chrome.tabs.sendMessage(tabId, {
@@ -63833,16 +63782,13 @@ new Vue({
                 });
               }
 
-            case 10:
+            case 8:
             case "end":
               return _context5.stop();
           }
         }
       }, null, this);
     }
-  },
-  created: function created() {
-    console.log("created");
   },
   mounted: function mounted() {
     var _ref, _ref2, accounts, accountsToPrivatekeys, selectedAccountIdx;
@@ -63861,24 +63807,20 @@ new Vue({
             accounts = _ref2[0];
             accountsToPrivatekeys = _ref2[1];
             selectedAccountIdx = _ref2[2];
-            console.log("mounted accounts getitem", accounts, accountsToPrivatekeys, selectedAccountIdx);
 
             if (accounts && accounts.length) {
               this.accounts = accounts;
               this.accountsToPrivatekeys = accountsToPrivatekeys;
               this.selectedAccountIdx = selectedAccountIdx;
-              console.log("is able to inject");
             }
+            /*chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+                sendResponse("popp receive your message：",JSON.stringify(request));
+                console.log('chrome',chrome);
+                let {shouldNotice} = request;
+            });*/
 
-            chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-              console.log('popup request sender sendResponse', request, sender, sendResponse);
-              sendResponse("我已收到你的消息：", JSON.stringify(request));
-              console.log('chrome', chrome);
-              var shouldNotice = request.shouldNotice;
-              console.log('shouldNotice', shouldNotice);
-            });
 
-          case 11:
+          case 9:
           case "end":
             return _context6.stop();
         }
@@ -63962,17 +63904,7 @@ var LedgerBridgeKeyring = require('eth-ledger-bridge-keyring');
 var keyringTypes = [SimpleKeyring, HdKeyring, LedgerBridgeKeyring];
 var additionalKeyringTypes = [LedgerBridgeKeyring];
 var keyringController = new KeyringController({
-  keyringTypes: additionalKeyringTypes //iinitState
-
-  /*encryptor: { // An optional object for defining encryption schemes:
-    // Defaults to Browser-native SubtleCrypto.
-    encrypt (password, object) {
-      return new Promise('encrypted!')
-    },
-    decrypt (password, encryptedString) {
-      return new Promise({ foo: 'bar' })
-    },
-  },*/
+  keyringTypes: additionalKeyringTypes //initState
 
 });
 module.exports = keyringController;

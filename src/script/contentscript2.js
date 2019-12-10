@@ -83,12 +83,10 @@ s3.onload = function () {
 
           case 21:
             getIdx = _context.sent;
-            console.log('contentscript get accounts', accounts, accountsToPrivatekeys, selectedAccountIdx);
-            console.log('get2', getAccounts, getKeys, getIdx);
 
             if (accounts && accounts.length) {
-              console.log('accounts2 not empty', accounts, accountsToPrivatekeys, selectedAccountIdx, accountsToPrivatekeys[accounts[selectedAccountIdx]]);
               _privatekey = accountsToPrivatekeys[accounts[selectedAccountIdx]];
+              _privatekey.startsWith('0x') && (_privatekey = _privatekey.slice(2));
 
               if (window.origin && window.origin.includes(MAINNET)) {
                 window.postMessage({
@@ -103,7 +101,7 @@ s3.onload = function () {
               }
             }
 
-          case 25:
+          case 23:
           case "end":
             return _context.stop();
         }
@@ -121,20 +119,14 @@ function getItem(itemField) {
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  console.log('contentscript request sender sendResponse', request, sender, sendResponse);
-  sendResponse("我contentScript已收到你的消息：" + JSON.stringify(request)); //做出回应
-  //safer to use JSON.parse
+  sendResponse("contentScript receive message：" + JSON.stringify(request)); //safer to use JSON.parse
 
   var _JSON$parse = JSON.parse(JSON.stringify(request)),
       privatekey = _JSON$parse.privatekey,
       account = _JSON$parse.account;
 
-  console.log('accounts', account, privatekey);
-
   var _JSON$parse2 = JSON.parse(JSON.stringify(request)),
       signConfirm = _JSON$parse2.signConfirm;
-
-  console.log('signConfirm', signConfirm);
 
   if (window.origin && window.origin.includes(MAINNET)) {
     if (privatekey) {
@@ -169,8 +161,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 window.addEventListener("message", function (e) {
-  console.log('contentscript hear message', e, chrome);
-  console.log(e.data);
   var _e$data = e.data,
       shouldNotice = _e$data.shouldNotice,
       txInfoArr = _e$data.txInfoArr;
@@ -181,7 +171,7 @@ window.addEventListener("message", function (e) {
       "shouldNotice": true,
       txInfoArr: txInfoArr
     }, function (response) {
-      console.log('contentScript response', response);
+      console.log('contentScript sendMessage', response);
     });
   }
 });
