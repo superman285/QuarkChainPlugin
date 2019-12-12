@@ -10,6 +10,7 @@ const Web3Accounts = require('web3-eth-accounts');
 new Vue({
     el: "#app",
     store,
+    vuetify: new Vuetify(),
     data: {
         message: "Hello, QuarkChain!",
         inputPrivatekey: "",
