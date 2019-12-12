@@ -4,7 +4,6 @@ const DEVNET = 'http://devnet.quarkchain.io';
 const MAINNET = 'http://mainnet.quarkchain.io';
 
 const domain = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
-console.log('injected start domain',domain);
 
 const Web3Accounts = require('web3-eth-accounts');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
@@ -49,12 +48,8 @@ PrivateKeyProvider.prototype.send = function (payload) {
 PrivateKeyProvider.prototype.sendAsync = async function(payload) {
     if (payload.method === "eth_signTypedData") {
         let {params:[txInfoArr]} = payload;
-
         window.postMessage({"greet": 'hello！', "shouldNotice": true, txInfoArr}, domain);
-
-
         let waitResult = await waitConfirming();
-
         if (waitResult == true) {
             shouldSignNext = undefined;
             this.engine.sendAsync.apply(this.engine, arguments);
@@ -67,24 +62,18 @@ PrivateKeyProvider.prototype.sendAsync = async function(payload) {
     }
 };
 
-
-
-/*const Web3EthAccounts = require('web3-eth-accounts');
-let unlockAccount = Web3EthAccounts.prototype.privateKeyToAccount('0x5a546d5a6b605c731065e4ed32ae8f6a94efbc926463f72ee7691f2441335997');
-console.log('unlock',unlockAccount);*/
-
-
-
 window.addEventListener("message", function (e) {
 
-    console.log('esource',e.source,window,e.source === window);
-    if (e.source !== window) {
-        log.warn('different source')
+    console.log('injected on message',e.data,e);
+    if (e.source !== window && !e.origin.includes('quarkchain')) {
+        log.warn('different source');
         return;
     }
 
     let {privatekey} = e.data;
     let {signConfirm} = e.data;
+
+    console.log('injected privatekey',privatekey);
 
     if (privatekey) {
         let web3 = new Web3();
@@ -95,9 +84,11 @@ window.addEventListener("message", function (e) {
         //can not startsWith '0x'
         let pkProvider = new PrivateKeyProvider(privatekey, "https://rinkeby.infura.io/v3/c8c7838ccbae48d6b5fb5f8885e184d6");
 
+        console.log('injected pkProvider',pkProvider);
+
         web3.setProvider(pkProvider);
 
-        web3.currentProvider.wallet = {hidden:true};
+        //web3.currentProvider.wallet = {hidden:true};
         //web3 provider 要做一层防护或拦截 或者隐藏起wallet 再注入 页面
         window.web3 = web3;
     }

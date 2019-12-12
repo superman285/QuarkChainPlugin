@@ -6,9 +6,11 @@
     "mode": "npm"
   },
   "scripts": {
+    "go": "cd src && browserify app.js -o app2.js -t [ babelify --presets[env]] && cd script && browserify contentscript.js -o contentscript2.js -t [ babelify --presets[env]] && browserify injected.js -o injected2.js -t [ babelify --presets[env]]",
     "ba_popup": "cd src && browserify popup.js -o popup2.js -t [ babelify --presets[env]]",
     "ba_bg": "cd src/script && browserify background.js -o bg.js -t [ babelify --presets[env]]",
     "ba_sign": "cd src/script && browserify sign-notification.js -o sign.js -t [ babelify --presets[env]]",
+    "ba_pwd": "cd src/script && browserify password-connect.js -o dist/password-connect.js -t [ babelify --presets[env]]",
     "ba_contentscript": "cd src/script && browserify contentscript.js -o contentscript2.js -t [ babelify --presets[env]]",
     "ba_app": "cd src && browserify app.js -o app2.js -t [ babelify --presets[env]]",
     "ba_injected": "cd src/script && browserify injected.js -o injected2.js -t [ babelify --presets[env]]",

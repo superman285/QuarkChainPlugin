@@ -65,10 +65,8 @@ new Vue({
     },
 
     created() {
-        chrome.runtime.getBackgroundPage(bgObj=>{
-            console.log('bgObj',bgObj,bgObj.getTxInfoArr);
-            let txInfoArr = bgObj.getTxInfoArr();
-            console.log('txInfoArr',txInfoArr);
+        chrome.runtime.getBackgroundPage(background=>{
+            let txInfoArr = background.getTxInfoArr();
             this.txInfos = txInfoArr;
         })
     },

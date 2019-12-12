@@ -1,18 +1,11 @@
 require("babel-polyfill");
 const store = require('./store');
 const accountImporter = require("./script/utils/accountImporter");
-let keyringController = require("./script/utils/keyringController");
-
 
 const log = require('loglevel');
 log.setLevel(0); //trace
 const ObsStore = require('obs-store');
 const Web3Accounts = require('web3-eth-accounts');
-
-
-//临时设置一个固定密码
-keyringController.password = "123456";
-
 
 new Vue({
     el: "#app",
@@ -20,7 +13,6 @@ new Vue({
     data: {
         message: "Hello, QuarkChain!",
         inputPrivatekey: "",
-        accountsToPrivatekeys: {},
         accountsToKeystores: {},
         accounts: [],
         selectedAccountIdx: 0,
@@ -60,7 +52,6 @@ new Vue({
             this.unlockByPwd();
             this.obsStore.putState({password:this.inputPassword});
             this.port.postMessage(this.obsStore);
-
         },
         lock() {
             this.lockByPwd();
@@ -129,23 +120,19 @@ new Vue({
             this.setItem("selectedAccountIdx", this.selectedAccountIdx, () => {
                 console.log("save selectedAccountIdx finish");
             });
-            this.sendDataToContentScript(this.accounts[idx]);
+            this.sendDataToContentScript(['keystore','password'],[this.accountsToKeystores[this.accounts[idx]],this.obsStore.getState().password]);
         },
         async enter() {
-
             if (!this.inputPrivatekey) {
                 //todo: need to check the format of key
                 return;
             }
-
             const {newAccount,newKeyStore} = await this.importAccountWithStrategy("Private Key",this.inputPrivatekey)
-
             this.accounts.push(newAccount.address);
 
             //Duplicate remove
             this.accounts = [...new Set(this.accounts)];
             this.accountsToKeystores[newAccount.address] = newKeyStore;
-
 
             let setItems = await Promise.all([
                 this.setItem("accounts",this.accounts,(res)=>{
@@ -157,13 +144,8 @@ new Vue({
             ]);
             log.info('enter new setItems',setItems);
 
-
             this.sendDataToContentScript(['keystore','password'],[this.accountsToKeystores[this.accounts[this.selectedAccountIdx]],this.obsStore.getState().password]);
 
-        },
-        async deliver() {
-            let currentTab = await this.getCurrentTab();
-            let tabId = currentTab ? currentTab.id : null;
         },
         async clear() {
             chrome.storage.local.clear(e => {
@@ -171,15 +153,15 @@ new Vue({
             });
 
             this.accounts = [];
-            this.accountsToPrivatekeys = {};
+            this.accountsToKeystores = {};
             this.selectedAccountIdx = 0;
 
             let setItems = await Promise.all([
                 this.setItem("accounts", this.accounts, () => {
                     console.log("set accounts finish");
                 }),
-                this.setItem("accountsToPrivatekeys", this.accountsToPrivatekeys, () => {
-                    console.log("set accountsToPrivatekeys finish");
+                this.setItem("accountsToKeystores", this.accountsToKeystores, () => {
+                    console.log("set accountsToKeystores finish");
                 }),
                 this.setItem("selectedAccountIdx", this.selectedAccountIdx, () => {
                     console.log("set selectedAccountIdx finish");
@@ -246,7 +228,6 @@ new Vue({
             this.accountsToKeystores = accountsToKeystores;
             this.selectedAccountIdx = selectedAccountIdx;
         }
-
     },
 
 });
