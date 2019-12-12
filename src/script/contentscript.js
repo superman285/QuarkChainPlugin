@@ -1,6 +1,14 @@
 const DEVNET = 'http://devnet.quarkchain.io';
 const MAINNET = 'http://mainnet.quarkchain.io';
 
+const domain = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
+console.log('start domain',domain,chrome,chrome.extension);
+
+const ObsStore = require('obs-store');
+
+const Web3Accounts = require('web3-eth-accounts');
+
+
 const injectionSite = (
     document.head || document.documentElement);
 let s = document.createElement('script'),
@@ -33,27 +41,25 @@ s3.onload = () => {
     s3.parentNode.removeChild(s3);
 
     //加载完injected脚本后再发消息 改变currentProvider
-    (
-        async () => {
-            let item = await this.getItem('accounts');
-            let privatekey = await this.getItem('privatekey')
-            let [accounts,accountsToPrivatekeys,selectedAccountIdx] = await Promise.all([
-                this.getItem("accounts"),
-                this.getItem("accountsToPrivatekeys"),
-                this.getItem("selectedAccountIdx"),
+    (async () => {
+            let item = await getItem('accounts');
+            let privatekey = await getItem('privatekey')
+            let [accounts,accountsToKeystores,selectedAccountIdx] = await Promise.all([
+                getItem("accounts"),
+                getItem("accountsToKeystores"),
+                getItem("selectedAccountIdx"),
             ]);
-            let getAccounts = await this.getItem("accounts");
-            let getKeys = await this.getItem("accountsToPrivatekeys");
-            let getIdx = await this.getItem("selectedAccountIdx");
+
+
 
             if (accounts && accounts.length) {
-                let privatekey = accountsToPrivatekeys[accounts[selectedAccountIdx]];
-                privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
-                if (window.origin && window.origin.includes(MAINNET)) {
-                    window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, MAINNET);
-                }else if (window.origin && window.origin.includes(DEVNET)) {
-                    window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, DEVNET);
-                }
+                let keystore = accountsToKeystores[accounts[selectedAccountIdx]];
+
+                console.log('Web3Accounts.prototype.decrypt(keystore,password)',Web3Accounts.prototype.decrypt(keystore,password));
+
+                let {privateKey} = Web3Accounts.prototype.decrypt(keystore,password);
+                privateKey.startsWith('0x') && (privateKey = privateKey.slice(2));
+                window.postMessage({"greetFromContentScript": 'hello！', "privateKey": privateKey}, domain);
             }
         })()
 };
@@ -68,29 +74,37 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     sendResponse("contentScript receive message："+JSON.stringify(request));
 
     //safer to use JSON.parse
-    let {privatekey, account} = JSON.parse(JSON.stringify(request));
+    let {keystore, password} = JSON.parse(JSON.stringify(request));
     let {signConfirm} = JSON.parse(JSON.stringify(request));
+    log.info('keystore,password',keystore,password);
 
-    if (window.origin && window.origin.includes(MAINNET)) {
-        if (privatekey) {
-            privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
-            window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, MAINNET);
-        }
-        if (typeof signConfirm === 'boolean') {
-            window.postMessage({"greetFromContentScript": 'hello！', signConfirm}, MAINNET);
-        }
-    }else if (window.origin && window.origin.includes(DEVNET)) {
-        if (privatekey) {
-            privatekey.startsWith('0x') && (privatekey = privatekey.slice(2));
-            window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privatekey}, DEVNET);
-        }
-        if (typeof signConfirm === 'boolean') {
-            window.postMessage({"greetFromContentScript": 'hello！', signConfirm}, DEVNET);
-        }
+    console.log('on domain',domain);
+
+    let decryptAccount = Web3Accounts.prototype.decrypt(keystore,password);
+    console.log('decryptAccount',decryptAccount);
+
+    let privateKey = decryptAccount.privateKey;
+
+
+    if (privateKey) {
+        privateKey.startsWith('0x') && (privateKey = privateKey.slice(2));
+        window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privateKey}, domain);
     }
+    if (typeof signConfirm === 'boolean') {
+        window.postMessage({"greetFromContentScript": 'hello！', signConfirm}, domain);
+    }
+
 });
 
 window.addEventListener("message", function (e) {
+
+    console.log('esource',e.source,window,e.source==window);
+
+    if (e.source !== window) {
+        log.warn('different source')
+        return;
+    }
+
     let {shouldNotice,txInfoArr} = e.data;
     if (shouldNotice && txInfoArr && txInfoArr.length) {
         chrome.runtime.sendMessage({"greetFromContentScript": 'hello！', "shouldNotice": true, txInfoArr},response=>{

@@ -1,6 +1,12 @@
 const DEVNET = "http://devnet.quarkchain.io";
 const MAINNET = "http://mainnet.quarkchain.io";
 
+//const ObsStore = require('obs-store');
+
+function getObsStore() {
+    console.log('now obsStore undefined');
+}
+
 function getCurrentTab() {
     return new Promise(resolve => {
         chrome.tabs.query({ active: true/*, currentWindow: true*/ }, tabs => resolve(tabs[0]));
@@ -9,6 +15,13 @@ function getCurrentTab() {
 
 function getTxInfoArr() {
     console.log('now txInfo empty');
+}
+
+function setItem(itemField, data, callback) {
+    return new Promise(resolve => {
+        chrome.storage.local.set({[itemField]: data}, callback);
+        resolve({itemField: data});
+    });
 }
 
 chrome.runtime.onMessage.addListener(async function(request, sender, sendResponse) {
@@ -40,4 +53,22 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
 
 chrome.windows.onRemoved.addListener(windowId => {
     console.log("bg listen window removed:", windowId);
+});
+
+chrome.runtime.onConnect.addListener( (port)=>{
+    console.log('connect--->',port);
+
+    port.onMessage.addListener(obsStore=>{
+        console.log('get obsstore msg from popup',obsStore);
+        getObsStore = () => obsStore;
+        console.log('getObsStore',getObsStore());
+    });
+
+    port.onDisconnect.addListener(()=>{
+        console.log('disconnect<-----');
+        let nowTimeStamp = Date.now();
+        setItem('lastActionTime',nowTimeStamp,()=>{
+            console.log('set lastActionTime');
+        })
+    });
 });

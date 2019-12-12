@@ -3,6 +3,10 @@
 const DEVNET = 'http://devnet.quarkchain.io';
 const MAINNET = 'http://mainnet.quarkchain.io';
 
+const domain = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
+console.log('injected start domain',domain);
+
+const Web3Accounts = require('web3-eth-accounts');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 //const PrivateKeyProvider = require("./utils/web3-privatekey-provider.js");
 //let localProvider = new Web3.providers.HttpProvider("http://localhost:7878");
@@ -45,11 +49,9 @@ PrivateKeyProvider.prototype.send = function (payload) {
 PrivateKeyProvider.prototype.sendAsync = async function(payload) {
     if (payload.method === "eth_signTypedData") {
         let {params:[txInfoArr]} = payload;
-        if (window.origin && window.origin.includes(MAINNET)) {
-            window.postMessage({"greet": 'hello！', "shouldNotice": true, txInfoArr}, MAINNET);
-        }else if (window.origin && window.origin.includes(DEVNET)) {
-            window.postMessage({"greet": 'hello！', "shouldNotice": true, txInfoArr}, DEVNET);
-        }
+
+        window.postMessage({"greet": 'hello！', "shouldNotice": true, txInfoArr}, domain);
+
 
         let waitResult = await waitConfirming();
 
@@ -75,6 +77,12 @@ console.log('unlock',unlockAccount);*/
 
 window.addEventListener("message", function (e) {
 
+    console.log('esource',e.source,window,e.source === window);
+    if (e.source !== window) {
+        log.warn('different source')
+        return;
+    }
+
     let {privatekey} = e.data;
     let {signConfirm} = e.data;
 
@@ -89,7 +97,7 @@ window.addEventListener("message", function (e) {
 
         web3.setProvider(pkProvider);
 
-        //web3.currentProvider.wallet = {hidden:true};
+        web3.currentProvider.wallet = {hidden:true};
         //web3 provider 要做一层防护或拦截 或者隐藏起wallet 再注入 页面
         window.web3 = web3;
     }

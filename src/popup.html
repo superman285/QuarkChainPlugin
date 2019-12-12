@@ -4,19 +4,39 @@
     <meta charset="UTF-8">
     <title>QuarkchainYeah</title>
     <script src="https://unpkg.com/vue@2.6.10/dist/vue.js"></script>
-    <!--<script src="https://cdn.jsdelivr.net/npm/web3@0.20.7/dist/web3.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quarkchain-web3@2.0.0/dist/quarkchain-web3.js"></script>-->
     <link rel="stylesheet" href="./app.css">
 </head>
 
 <body>
+<div id="app">
 
-    <div id="app">
+    <!--register-->
+    <!--<div class="password-wrap" v-if="passwordLocked">
+        <h1>
+            Password: <input type="password" v-model="inputPassword">
+        </h1>
+        <button class="submitPwd" @click="submitPwd">UnLock</button>
+    </div>-->
+
+    <!--login-->
+    <div class="password-wrap" v-if="passwordLocked">
+        <h1>
+        Password: <input type="password" v-model="inputPassword">
+        </h1>
+        <button class="submitPwd" @click="submitPwd">UnLock</button>
+
+        <button @click="clear">CLEAR</button>
+    </div>
+
+
+
+    <div class="accounts-wrap" v-if="!passwordLocked">
         <h1>{{message}}</h1>
         <label for="pk">privatekey
             <input type="password" id="pk" v-model="inputPrivatekey">
         </label>
         <button @click="enter">enter</button>
+        <button @click="lock">Lock</button>
         <button @click="deliver">deliver</button>
 
         <h3 class="address-wrap"
@@ -24,18 +44,21 @@
             v-for="account,idx in accounts"
         >
             <div class="address"
-                  @dblclick="changeAccount(idx)"
+                 @dblclick="changeAccount(idx)"
             >{{ account }}</div>
-            <div class ="selectedFlag"
-                 v-if = "idx === selectedAccountIdx"
-            >✅</div>
+            <div class="selectedFlag"
+                 v-if="idx === selectedAccountIdx"
+            >✅
+            </div>
         </h3>
 
         <button class="clear" @click="clear">CLEAR</button>
 
     </div>
 
-    <script src="./app2.js"></script>
+</div>
+
+<script src="./app2.js"></script>
 
 </body>
 </html>

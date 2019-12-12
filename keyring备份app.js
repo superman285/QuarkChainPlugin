@@ -2,10 +2,13 @@ require("babel-polyfill");
 const store = require('./store');
 const accountImporter = require("./script/utils/accountImporter");
 let keyringController = require("./script/utils/keyringController");
+
 const ObsStore = require('obs-store');
 
 //临时设置一个固定密码
 keyringController.password = "123456";
+console.log('store',store,store.state.passwordLocked);
+
 
 new Vue({
     el: "#app",

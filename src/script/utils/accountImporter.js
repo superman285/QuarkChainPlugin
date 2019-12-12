@@ -32,7 +32,7 @@ const accountImporter = {
       return stripped
     },
     'JSON File': (input, password) => {
-      let wallet
+      let wallet;
       try {
         wallet = importers.fromEtherWallet(input, password)
       } catch (e) {

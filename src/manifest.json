@@ -18,7 +18,7 @@
     "persistent": true
   },
   "content_scripts": [{
-    "js": ["script/contentscript.js"],
+    "js": ["script/contentscript2.js"],
     "matches": ["http://*/*", "https://*/*"],
     "run_at": "document_start",
     "all_frame": true
