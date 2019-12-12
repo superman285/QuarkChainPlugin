@@ -54,6 +54,8 @@ new Vue({
             this.port.postMessage(this.obsStore);
         },
         lock() {
+            this.obsStore.putState(undefined);
+            this.port.postMessage(this.obsStore);
             this.lockByPwd();
         },
         lockByPwd() {

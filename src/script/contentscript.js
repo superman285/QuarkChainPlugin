@@ -36,59 +36,99 @@ s2.onload = () => {
     s3.src = chrome.extension.getURL('script/injected2.js');
     s2.parentNode.removeChild(s2);
     injectionSite.insertBefore(s3, injectionSite.children[0]);
+
+    (async () => {
+        let item = await getItem('accounts');
+        let privatekey = await getItem('privatekey')
+        let [accounts,accountsToKeystores,selectedAccountIdx] = await Promise.all([
+            getItem("accounts"),
+            getItem("accountsToKeystores"),
+            getItem("selectedAccountIdx"),
+        ]);
+
+        let port = chrome.runtime.connect({name:'contentscript'});
+        port.onMessage.addListener( (msgFromBackground) =>{
+            let obsStore,shouldReload;
+            console.log('msgFromBackground',msgFromBackground);
+            msgFromBackground && ({obsStore,shouldReload} = msgFromBackground);
+            console.log('get obsstore from bg',obsStore);
+            obsStore = Object.assign(new ObsStore(),obsStore);
+            console.log('content onmessage obsStore',obsStore);
+            let {password} = obsStore.getState();
+            console.log('obs cont passowrd',password);
+
+            if (!password) {
+                chrome.runtime.sendMessage({"greetFromContentScript": 'hello！', "shouldConnect": true},response=>{
+                    console.log('contentScript sendMessage',response);
+                });
+                return;
+            }
+
+            if (accounts && accounts.length) {
+                let keystore = accountsToKeystores[accounts[selectedAccountIdx]];
+                try {
+                    let {privateKey} = Web3Accounts.prototype.decrypt(keystore,password);
+                    privateKey.startsWith('0x') && (privateKey = privateKey.slice(2));
+                    window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privateKey}, domain);
+                    shouldReload && window.location.reload();
+                } catch (err) {
+                    chrome.runtime.sendMessage({"clearPassword": true},response=>{
+                        console.log('contentScript sendMessage',response);
+                    });
+                    log.warn('Password Wrong!')
+                }
+            }
+        });
+    })()
 };
 
 s3.onload = () => {
     s3.parentNode.removeChild(s3);
 
     //加载完injected脚本后再发消息 改变currentProvider
-    (async () => {
-            let item = await getItem('accounts');
-            let privatekey = await getItem('privatekey')
-            let [accounts,accountsToKeystores,selectedAccountIdx] = await Promise.all([
-                getItem("accounts"),
-                getItem("accountsToKeystores"),
-                getItem("selectedAccountIdx"),
-            ]);
+    /*(async () => {
+        let item = await getItem('accounts');
+        let privatekey = await getItem('privatekey')
+        let [accounts,accountsToKeystores,selectedAccountIdx] = await Promise.all([
+            getItem("accounts"),
+            getItem("accountsToKeystores"),
+            getItem("selectedAccountIdx"),
+        ]);
 
-            let port = chrome.runtime.connect({name:'contentscript'});
-            port.onMessage.addListener( (msgFromBackground) =>{
-                let obsStore,shouldReload;
-                console.log('msgFromBackground',msgFromBackground);
-                msgFromBackground && ({obsStore,shouldReload} = msgFromBackground);
-                console.log('get obsstore from bg',obsStore);
-                obsStore = Object.assign(new ObsStore(),obsStore);
-                console.log('content onmessage obsStore',obsStore);
-                let {password} = obsStore.getState();
-                console.log('obs cont passowrd',password);
+        let port = chrome.runtime.connect({name:'contentscript'});
+        port.onMessage.addListener( (msgFromBackground) =>{
+            let obsStore,shouldReload;
+            console.log('msgFromBackground',msgFromBackground);
+            msgFromBackground && ({obsStore,shouldReload} = msgFromBackground);
+            console.log('get obsstore from bg',obsStore);
+            obsStore = Object.assign(new ObsStore(),obsStore);
+            console.log('content onmessage obsStore',obsStore);
+            let {password} = obsStore.getState();
+            console.log('obs cont passowrd',password);
 
-                if (!password) {
-                    chrome.runtime.sendMessage({"greetFromContentScript": 'hello！', "shouldConnect": true},response=>{
+            if (!password) {
+                chrome.runtime.sendMessage({"greetFromContentScript": 'hello！', "shouldConnect": true},response=>{
+                    console.log('contentScript sendMessage',response);
+                });
+                return;
+            }
+
+            if (accounts && accounts.length) {
+                let keystore = accountsToKeystores[accounts[selectedAccountIdx]];
+                try {
+                    let {privateKey} = Web3Accounts.prototype.decrypt(keystore,password);
+                    privateKey.startsWith('0x') && (privateKey = privateKey.slice(2));
+                    window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privateKey}, domain);
+                    shouldReload && window.location.reload();
+                } catch (err) {
+                    chrome.runtime.sendMessage({"clearPassword": true},response=>{
                         console.log('contentScript sendMessage',response);
                     });
-                    return;
+                    log.warn('Password Wrong!')
                 }
-
-                if (accounts && accounts.length) {
-                    let keystore = accountsToKeystores[accounts[selectedAccountIdx]];
-                    try {
-                        let {privateKey} = Web3Accounts.prototype.decrypt(keystore,password);
-                        privateKey.startsWith('0x') && (privateKey = privateKey.slice(2));
-                        window.postMessage({"greetFromContentScript": 'hello！', "privatekey": privateKey}, domain);
-                        shouldReload && window.location.reload();
-                    } catch (err) {
-                        chrome.runtime.sendMessage({"clearPassword": true},response=>{
-                            console.log('contentScript sendMessage',response);
-                        });
-                        log.warn('Password Wrong!')
-                    }
-                }
-
-
-
-
-            });
-        })()
+            }
+        });
+    })()*/
 };
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
